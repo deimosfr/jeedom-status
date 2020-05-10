@@ -13,7 +13,6 @@ You can download the binary directly from the [release page](https://github.com/
 To use jeedom-status, you have to get :
 * Your user hash key. Go into Jeedom web interface, then click on Tools -> Preferences -> Security -> User Hash.
 * The URL of your jeedom API like (replace "jeedom" with the name or IP of Jeedom endpoint): http://jeedom/core/api/jeeApi.php
-* Specific fonts containing icons: https://github.com/ryanoasis/nerd-fonts.
 
 # Installation and usage
 
@@ -22,12 +21,6 @@ To use jeedom-status, you have to get :
 You need have [brew](https://brew.sh/) installed. If you don't have brew, install it this way:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-```
-
-Once done, you have to install the [Nerd fonts](https://github.com/ryanoasis/nerd-fonts) to get the Fonts containing the icons:
-```bash
-brew tap homebrew/cask-fonts
-brew cask install font-hack-nerd-font
 ```
 
 Install [bitbar](https://getbitbar.com/) to be able to add jeedom-status in the status bar:
@@ -70,3 +63,4 @@ markup=pango
 interval=60
 ```
 
+For this example, I used Nerd fonts, containing additional icons: https://github.com/ryanoasis/nerd-fonts.
