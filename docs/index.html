@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ ! -f /usr/local/bin/jeedom-status ] ; then
+    echo "Installing brew"
+    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh
+
+    echo "Installing bitbar"
+    brew cask install bitbar
+
+    echo "Installing jeedom-status"
+    brew tap deimosfr/jeedom-status
+    brew install jeedom-status
+fi
+
+echo "Downloading jeedom-status bitbar"
+curl -o ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
+
+echo "Enter Jeedom URL (ex: http://jeedom/core/api/jeeApi.php)":
+read jeedom_url
+
+echo "Enter Jeedom User Hash Key":
+read juhk
+
+sed "s/APIKEY=''/APIKEY='$jeedom_url'/" ~/Downloads/jeedom-status.1m.sh > ~/Downloads/jeedom-status.1m.sh.tmp
+sed "s/APIKEY=''/APIKEY='$juhk'/" ~/Downloads/jeedom-status.1m.sh.tmp > ~/Downloads/jeedom-status.1m.sh
+
+chmod 755 ~/Downloads/jeedom-status.1m.sh
+rm -f ~/Downloads/jeedom-status.1m.sh.tmp
+
