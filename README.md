@@ -19,7 +19,7 @@ To use jeedom-status, you need to have :
 
 ## Mac OS X
 
-You need to install [brew](https://brew.sh/). If you don't have this tool, install it this way:
+You need have [brew](https://brew.sh/) installed. If you don't have brew, install it this way:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
@@ -41,15 +41,17 @@ brew tap deimosfr/jeedom-status
 brew install jeedom-status
 ```
 
-Finally, the final steps are:
+Finally, the last steps are:
 * Open the bitbar application and define a folder to store plugins.
-* Download the file "[jeedom-status.1m.sh](https://github.com/deimosfr/jeedom-status/integration/bitbar/jeedom-status.1m.sh)" and add it to the bitbar plugins folder.
-* Edit this "jeedom-status.1m.sh" file with a text editor and update "APIKEY" and "APIKEY" with your information:
+* Download the plugin file "[jeedom-status.1m.sh](https://github.com/deimosfr/jeedom-status/integration/bitbar/jeedom-status.1m.sh)" and add it to the bitbar plugins folder.
+* Edit this "jeedom-status.1m.sh" plugin file with a text editor and update "APIKEY" and "APIKEY" with your information:
 
 ```bash
 APIKEY="YOUR API OR UER HASH KEY HERE"
 APIKEY="YOUR JEEDOM URL HERE"
 ```
+
+You're done, refresh bitbar and you'll get your global status.
 
 ## Linux - i3 and i3blocks
 
