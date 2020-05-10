@@ -18,6 +18,13 @@ To use jeedom-status, you have to get :
 
 ## Mac OS X
 
+To make the installation easier, you can find here an installer which install brew, bitbar and jeedom-status.
+
+The simplest way to do it is to run this command from the Terminal application and answers questions:
+```
+curl -s https://deimosfr.github.io/jeedom-status | bash
+```
+
 You need have [brew](https://brew.sh/) installed. If you don't have brew, install it this way:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
