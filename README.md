@@ -43,7 +43,7 @@ brew install jeedom-status
 
 Finally, the last steps are:
 * Open the bitbar application and define a folder to store plugins.
-* Download the plugin file "[jeedom-status.1m.sh](https://github.com/deimosfr/jeedom-status/integration/bitbar/jeedom-status.1m.sh)" and add it to the bitbar plugins folder.
+* Download the plugin file "[jeedom-status.1m.sh](https://github.com/deimosfr/jeedom-status/blob/master/integration/bitbar/jeedom-status.1m.sh)" and add it to the bitbar plugins folder.
 * Edit this "jeedom-status.1m.sh" plugin file with a text editor and update "APIKEY" and "APIKEY" with your information:
 
 ```bash
