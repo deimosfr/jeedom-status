@@ -36,17 +36,17 @@ func JeedomSummaryFontsIcons() JeedomSummary {
 func JeedomSummaryEmojiIcons() JeedomSummary {
 	// emoji: https://unicode.org/emoji/charts/full-emoji-list.html
 	return JeedomSummary{
-		Alarm:       "\u1F514",
-		Door:        "\u1F6AA",
-		Humidity:    "\u1F4A7",
-		Light:       "\u1F4A1",
-		Luminosity:  "\u1F506",
-		Motion:      "\u1F3C3",
-		Outlet:      "\u1F50C",
+		Alarm:       "\U0001F514",
+		Door:        "\U0001F6AA",
+		Humidity:    "\U0001F4A7",
+		Light:       "\U0001F4A1",
+		Luminosity:  "\U0001F506",
+		Motion:      "\U0001F3C3",
+		Outlet:      "\U0001F50C",
 		Power:       "\u26A1",
-		Security:    "\u1F512",
+		Security:    "\U0001F512",
 		Shutter:     "S",
-		Temperature: "\u1F321",
-		Windows:     "\u1FA9F",
+		Temperature: "\U0001F321",
+		Windows:     "\U0001FA9F",
 	}
 }
