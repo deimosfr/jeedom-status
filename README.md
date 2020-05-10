@@ -52,7 +52,7 @@ brew cask install font-hack-nerd-font
 
 Install [bitbar](https://getbitbar.com/) to be able to add jeedom-status in the status bar:
 ```bitbar
-brew install bitbar
+brew cask install bitbar
 ```
 
 Finally, copy the "jeedom-status" binary to the bitbar plugin folder and name it "jeedom-status.1m.bin".

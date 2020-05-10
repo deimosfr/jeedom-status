@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/deimosfr/jeedom-status/pkg"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
@@ -16,6 +17,17 @@ var getCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		result := make(map[string]string)
 
+		// Check args
+		selectedStyle, _ := cmd.Flags().GetString("style")
+		_, found := pkg.Find(getStyles(), selectedStyle)
+		if !found {
+			fmt.Println(
+				"Value %s is not a valid style, allowed values are: %s",
+				selectedStyle,
+				strings.Join(getStyles(), " "),
+			)
+		}
+
 		if res, _ := cmd.Flags().GetBool("sample"); res {
 			result = getSampleJeedomGlobalStatus()
 		} else {
@@ -25,18 +37,28 @@ var getCmd = &cobra.Command{
 		}
 
 		debugMode, _ := cmd.Flags().GetBool("debug")
-		prettyPrint(result, debugMode)
+		prettyPrint(result, selectedStyle, debugMode)
 	},
+}
+
+func checkArgs() bool {
+
 }
 
 func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL")
 	getCmd.Flags().StringP("apiKey", "a", "", "Jeedom API key")
-	getCmd.Flags().BoolP("sample", "s", false,"Run a sample test")
+
+	getCmd.Flags().StringP("style", "s", "fonts",
+		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), " ")))
+
+	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test")
 	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
-	getCmd.MarkFlagRequired("url")
-	getCmd.MarkFlagRequired("apiKey")
+}
+
+func getStyles() []string {
+	return []string{"fonts"}
 }
 
 func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
@@ -110,40 +132,46 @@ func getSampleJeedomGlobalStatus() map[string]string {
 	}
 }
 
-func prettyPrint(jeedomMap map[string]string, debugMode bool) {
-	// icons: https://www.nerdfonts.com/cheat-sheet
+func prettyPrint(jeedomMap map[string]string, iconStyle string, debugMode bool) {
 	var toPrint []string
+	var icons pkg.JeedomSummary
 
 	if debugMode {
 		fmt.Println(jeedomMap)
 	}
 
+	if iconStyle == "fonts" {
+		icons = pkg.JeedomSummaryFontsIcons()
+	}
+
 	for key, value := range jeedomMap {
 		if key == "alarm" && value != "0" {
-			toPrint = append(toPrint, "\uF023")
+			toPrint = append(toPrint, icons.Alarm)
 			continue
 		} else if value == "<nil>" || value == "0" {
 			continue
 		} else if key == "security" {
-			toPrint = append(toPrint, value + "\uFC8D")
+			toPrint = append(toPrint, value + icons.Security)
 		} else if key == "motion" {
-			toPrint = append(toPrint, value + "\uFC0C")
+			toPrint = append(toPrint, value + icons.Motion)
 		} else if key == "windows" {
-			toPrint = append(toPrint, value + "\uF17A")
+			toPrint = append(toPrint, value + icons.Windows)
 		} else if key == "outlet" {
-			toPrint = append(toPrint, value + "\uF1E6")
+			toPrint = append(toPrint, value + icons.Outlet)
 		} else if key == "humidity" {
-			toPrint = append(toPrint, value + "\uE373")
+			toPrint = append(toPrint, value + icons.Humidity)
 		} else if key == "light" {
-			toPrint = append(toPrint, value + "\uf834")
+			toPrint = append(toPrint, value + icons.Light)
 		} else if key == "luminosity" {
-			toPrint = append(toPrint, value + "\ufAA7")
+			toPrint = append(toPrint, value + icons.Luminosity)
 		} else if key == "power" {
-			toPrint = append(toPrint, value + "\uF0E7")
+			toPrint = append(toPrint, value + icons.Power)
 		} else if key == "door" {
-			toPrint = append(toPrint, value + "\uFD18")
+			toPrint = append(toPrint, value + icons.Door)
 		} else if key == "temperature" {
-			toPrint = append(toPrint, value + "\uF2C7")
+			toPrint = append(toPrint, value + icons.Temperature)
+		} else if key == "shutter" {
+			toPrint = append(toPrint, value + icons.Shutter)
 		} else {
 			toPrint = append(toPrint, value + key)
 		}
