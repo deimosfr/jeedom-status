@@ -32,3 +32,21 @@ func JeedomSummaryFontsIcons() JeedomSummary {
 		Windows:     "\uF17A",
 	}
 }
+
+func JeedomSummaryEmojiIcons() JeedomSummary {
+	// emoji: https://unicode.org/emoji/charts/full-emoji-list.html
+	return JeedomSummary{
+		Alarm:       "\u1F514",
+		Door:        "\u1F6AA",
+		Humidity:    "\u1F4A7",
+		Light:       "\u1F4A1",
+		Luminosity:  "\u1F506",
+		Motion:      "\u1F3C3",
+		Outlet:      "\u1F50C",
+		Power:       "\u26A1",
+		Security:    "\u1F512",
+		Shutter:     "S",
+		Temperature: "\u1F321",
+		Windows:     "\u1FA9F",
+	}
+}

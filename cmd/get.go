@@ -26,9 +26,10 @@ var getCmd = &cobra.Command{
 				selectedStyle,
 				strings.Join(getStyles(), " "),
 			)
+			os.Exit(1)
 		}
 
-		if res, _ := cmd.Flags().GetBool("sample"); res {
+		if res, _ := cmd.Flags().GetBool("fake"); res {
 			result = getSampleJeedomGlobalStatus()
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
@@ -49,14 +50,14 @@ func init() {
 	getCmd.MarkFlagRequired("apiKey")
 
 	getCmd.Flags().StringP("style", "s", "fonts",
-		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), " ")))
+		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
 
 	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
 	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
 }
 
 func getStyles() []string {
-	return []string{"fonts"}
+	return []string{"fonts", "emoji"}
 }
 
 func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
@@ -140,6 +141,8 @@ func prettyPrint(jeedomMap map[string]string, iconStyle string, debugMode bool) 
 
 	if iconStyle == "fonts" {
 		icons = pkg.JeedomSummaryFontsIcons()
+	} else if iconStyle == "emoji" {
+		icons = pkg.JeedomSummaryEmojiIcons()
 	}
 
 	for key, value := range jeedomMap {
