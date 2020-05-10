@@ -45,7 +45,7 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL (required)")
 	getCmd.MarkFlagRequired("url")
-	getCmd.Flags().StringP("apiKey", "a", "", "Jeedom API key (required)")
+	getCmd.Flags().StringP("apiKey", "k", "", "Jeedom API key or User Hash Key (required)")
 	getCmd.MarkFlagRequired("apiKey")
 
 	getCmd.Flags().StringP("style", "s", "fonts",
