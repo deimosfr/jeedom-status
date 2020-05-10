@@ -13,6 +13,6 @@
 # Dependencies:
 #   Jeedom-status (https://github.com/deimosfr/jeedom-status)
 
-APIKEY=""
-JEEDOM_URL=""
+APIKEY=
+JEEDOM_URL=
 /usr/local/bin/jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s emoji
