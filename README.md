@@ -6,6 +6,8 @@ It shows the Jeedom global status in the status bars in the global status bar of
 
 ![all_output](assets/output_all.png)
 
+![i3_output](assets/mac_output.png)
+
 You can download the binary directly from the [release page](https://github.com/deimosfr/jeedom-status/releases). It's available for Mac, Windows and Linux.
 
 # Prerequisites
@@ -17,6 +19,10 @@ To use jeedom-status, you have to get :
 # Installation and usage
 
 ## Mac OS X
+
+![i3_desktop](assets/mac_desktop.png)
+
+![i3_output](assets/mac_output.png)
 
 The simplest way to install jeedom-status is to run this command from the Terminal application (will install brew, bitbar and jeedom-status):
 ```
