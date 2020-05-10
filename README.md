@@ -10,8 +10,8 @@ You can download the binary directly from the [release page](https://github.com/
 
 # Prerequisites
 
-To use jeedom-status, you need to have :
-* Your user hash key. Go into Tools -> Preferences -> Security -> User Hash.
+To use jeedom-status, you have to get :
+* Your user hash key. Go into Jeedom web interface, then click on Tools -> Preferences -> Security -> User Hash.
 * The URL of your jeedom API like (replace "jeedom" with the name or IP of Jeedom endpoint): http://jeedom/core/api/jeeApi.php
 * Specific fonts containing icons: https://github.com/ryanoasis/nerd-fonts.
 
@@ -35,23 +35,25 @@ Install [bitbar](https://getbitbar.com/) to be able to add jeedom-status in the 
 brew cask install bitbar
 ```
 
-We can now install jeedom-status:
+We can now install jeedom-status and download the Bitbar jeedom-status plugin:
 ```bash
 brew tap deimosfr/jeedom-status
 brew install jeedom-status
+curl -o ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
+chmod 755 ~/Downloads/jeedom-status.1m.sh
 ```
 
 Finally, the last steps are:
 * Open the bitbar application and define a folder to store plugins.
-* Download the plugin file "[jeedom-status.1m.sh](https://github.com/deimosfr/jeedom-status/blob/master/integration/bitbar/jeedom-status.1m.sh)" and add it to the bitbar plugins folder.
-* Edit this "jeedom-status.1m.sh" plugin file with a text editor and update "APIKEY" and "APIKEY" with your information:
+* Move the "jeedom-status.1m.sh" plugin file from your Downloads folder to the bitbar plugins folder you've just defined.
+* Edit this "jeedom-status.1m.sh" plugin file with a text editor and update "APIKEY" and "APIKEY" with your information (as described in the [prerequisites section](#Prerequisites)):
 
 ```bash
 APIKEY="YOUR API OR UER HASH KEY HERE"
 APIKEY="YOUR JEEDOM URL HERE"
 ```
 
-You're done, refresh bitbar and you'll get your global status.
+You're done, click on the Bitbar and "refresh all". You'll see your Jeedom global status appearing.
 
 ## Linux - i3 and i3blocks
 
