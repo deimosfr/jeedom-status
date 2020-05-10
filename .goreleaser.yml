@@ -19,3 +19,18 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+brews:
+  -
+    name: jeedom-status
+    goarm: 6
+    github:
+      owner: deimosfr
+      name: homebrew-jeedom-status
+    url_template: "https://github.com/deimosfr/jeedom-status/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: Pierre Mavro (deimosfr)
+      email: deimosfr@gmail.com
+    folder: Formula
+    homepage: "https://github.com/deimosfr/jeedom-status"
+    description: "Jeedom global status for operating systems status bars"
+    skip_upload: false
