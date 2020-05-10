@@ -28,7 +28,7 @@ echo "--> Enter Jeedom User Hash Key":
 read juhk
 
 sed "s/APIKEY=/APIKEY='${jeedom_url}'/" ~/Downloads/jeedom-status.1m.sh > ~/Downloads/jeedom-status.1m.sh.tmp
-sed "s/APIKEY=/APIKEY='$(juhk}'/" ~/Downloads/jeedom-status.1m.sh.tmp > ~/Downloads/jeedom-status.1m.sh
+sed "s/JEEDOM_URL=/JEEDOM_URL='${juhk}'/" ~/Downloads/jeedom-status.1m.sh.tmp > ~/Downloads/jeedom-status.1m.sh
 
 chmod 755 ~/Downloads/jeedom-status.1m.sh
 rm -f ~/Downloads/jeedom-status.1m.sh.tmp
