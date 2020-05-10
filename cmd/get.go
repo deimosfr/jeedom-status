@@ -21,8 +21,8 @@ var getCmd = &cobra.Command{
 		selectedStyle, _ := cmd.Flags().GetString("style")
 		_, found := pkg.Find(getStyles(), selectedStyle)
 		if !found {
-			fmt.Println(
-				"Value %s is not a valid style, allowed values are: %s",
+			fmt.Printf(
+				"Value %s is not a valid style, allowed values are: %s\n",
 				selectedStyle,
 				strings.Join(getStyles(), " "),
 			)
