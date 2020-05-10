@@ -5,28 +5,28 @@ set -e
 brew_path=/usr/local/bin
 
 if [ ! -f $brew_path/brew ] ; then
-    echo "Installing brew"
+    echo "--> Installing brew"
     curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh
 fi
 
 if [ ! -d /Applications/BitBar.app ] ; then
-    echo "Installing bitbar"
+    echo "--> Installing bitbar"
     brew cask install bitbar
 fi
 
 if [ ! -f $brew_path/jeedom-status ] ; then
-    echo "Installing jeedom-status"
+    echo "--> Installing jeedom-status"
     brew tap deimosfr/jeedom-status
     brew install jeedom-status
 fi
 
-echo "Downloading jeedom-status bitbar"
+echo "--> Downloading jeedom-status bitbar"
 curl -o ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
 
-echo "Enter Jeedom API URL (ex: http://YOUR-JEEDOM-URL/core/api/jeeApi.php)":
+echo "--> Enter Jeedom API URL (ex: http://YOUR-JEEDOM-URL/core/api/jeeApi.php):"
 read jeedom_url
 
-echo "Enter Jeedom User Hash Key":
+echo "--> Enter Jeedom User Hash Key":
 read juhk
 
 sed "s/APIKEY=''/APIKEY='$jeedom_url'/" ~/Downloads/jeedom-status.1m.sh > ~/Downloads/jeedom-status.1m.sh.tmp
@@ -35,4 +35,4 @@ sed "s/APIKEY=''/APIKEY='$juhk'/" ~/Downloads/jeedom-status.1m.sh.tmp > ~/Downlo
 chmod 755 ~/Downloads/jeedom-status.1m.sh
 rm -f ~/Downloads/jeedom-status.1m.sh.tmp
 
-echo "To finish installation, move the file jeedom-status.1m.sh from Downloads folder to BitBar plugins directory"
+echo "--> To finish installation, move the file jeedom-status.1m.sh from Downloads folder to BitBar plugins directory"
