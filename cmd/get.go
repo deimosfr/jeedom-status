@@ -41,19 +41,17 @@ var getCmd = &cobra.Command{
 	},
 }
 
-func checkArgs() bool {
-
-}
-
 func init() {
 	rootCmd.AddCommand(getCmd)
-	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL")
-	getCmd.Flags().StringP("apiKey", "a", "", "Jeedom API key")
+	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL (required)")
+	getCmd.MarkFlagRequired("url")
+	getCmd.Flags().StringP("apiKey", "a", "", "Jeedom API key (required)")
+	getCmd.MarkFlagRequired("apiKey")
 
 	getCmd.Flags().StringP("style", "s", "fonts",
 		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), " ")))
 
-	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test")
+	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
 	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
 }
 
