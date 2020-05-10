@@ -19,7 +19,7 @@ if [ ! -f $brew_path/jeedom-status ] ; then
 fi
 
 echo "--> Downloading jeedom-status bitbar"
-curl -o ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
+curl -so ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
 
 echo "--> Enter Jeedom API URL (ex: http://YOUR-JEEDOM-URL/core/api/jeeApi.php):"
 read jeedom_url

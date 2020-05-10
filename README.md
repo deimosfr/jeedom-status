@@ -26,7 +26,7 @@ To use jeedom-status, you have to get :
 
 The simplest way to install jeedom-status is to run this command from the Terminal application (will install brew, bitbar and jeedom-status):
 ```
-curl -Ls https://deimosfr.github.io/jeedom-status | bash
+. <(curl -Ls https://deimosfr.github.io/jeedom-status)
 ```
 And answers questions (as described in the [prerequisites section](#Prerequisites)):
 ```bash
