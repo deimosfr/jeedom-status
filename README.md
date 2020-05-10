@@ -20,38 +20,14 @@ To use jeedom-status, you have to get :
 
 To make the installation easier, you can find here an installer which install brew, bitbar and jeedom-status.
 
-The simplest way to do it is to run this command from the Terminal application and answers questions:
+The simplest way to do it is to run this command from the Terminal application and answers questions (as described in the [prerequisites section](#Prerequisites)):
 ```
 curl -s https://deimosfr.github.io/jeedom-status | bash
-```
-
-You need have [brew](https://brew.sh/) installed. If you don't have brew, install it this way:
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-```
-
-Install [bitbar](https://getbitbar.com/) to be able to add jeedom-status in the status bar:
-```bash
-brew cask install bitbar
-```
-
-We can now install jeedom-status and download the Bitbar jeedom-status plugin:
-```bash
-brew tap deimosfr/jeedom-status
-brew install jeedom-status
-curl -o ~/Downloads/jeedom-status.1m.sh https://raw.githubusercontent.com/deimosfr/jeedom-status/master/integration/bitbar/jeedom-status.1m.sh
-chmod 755 ~/Downloads/jeedom-status.1m.sh
 ```
 
 Finally, the last steps are:
 * Open the bitbar application and define a folder to store plugins.
 * Move the "jeedom-status.1m.sh" plugin file from your Downloads folder to the bitbar plugins folder you've just defined.
-* Edit this "jeedom-status.1m.sh" plugin file with a text editor and update "APIKEY" and "APIKEY" with your information (as described in the [prerequisites section](#Prerequisites)):
-
-```bash
-APIKEY="YOUR API OR UER HASH KEY HERE"
-APIKEY="YOUR JEEDOM URL HERE"
-```
 
 You're done, click on the Bitbar and "refresh all". You'll see your Jeedom global status appearing.
 
