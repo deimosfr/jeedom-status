@@ -34,6 +34,7 @@ var getCmd = &cobra.Command{
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
 			url, _ := cmd.Flags().GetString("url")
+			url = url + "/core/api/jeeApi.php"
 			result = getJeedomGlobalStatus(apiKey, url)
 		}
 
@@ -44,7 +45,7 @@ var getCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getCmd)
-	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL (required)")
+	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL, like http://jeedom (required)")
 	err := getCmd.MarkFlagRequired("url")
 	if err != nil {
 		println(err)

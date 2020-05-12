@@ -14,7 +14,7 @@ You can download the binary directly from the [release page](https://github.com/
 
 To use jeedom-status, you have to get :
 * Your user hash key. Go into Jeedom web interface, then click on Tools -> Preferences -> Security -> User Hash.
-* The URL of your jeedom API like (replace "jeedom" with the name or IP of Jeedom endpoint): http://jeedom/core/api/jeeApi.php
+* The URL of your jeedom like (replace "jeedom" with the name or IP of Jeedom endpoint): http://jeedom
 
 # Installation and usage
 
@@ -30,8 +30,8 @@ bash <(curl -Ls https://deimosfr.github.io/jeedom-status)
 ```
 And answers questions (as described in the [prerequisites section](#Prerequisites)):
 ```bash
---> Enter Jeedom API URL (ex: http://YOUR-JEEDOM-URL/core/api/jeeApi.php):
-http://192.168.0.1/core/api/jeeApi.php
+--> Enter Jeedom API URL (ex: http://YOUR-JEEDOM-URL):
+http://192.168.0.2
 
 --> Enter Jeedom User Hash Key
 XXXXXXXXXXXX
@@ -53,7 +53,7 @@ Here is an example with [i3blocks](https://github.com/vivien/i3blocks) for [i3wm
 
 ```ini
 [jeedom]
-command=~/.config/i3/i3blocks_bin/jeedom_status
+command=~/.config/i3/i3blocks_bin/jeedom_status -k xxx -u http://jeedom
 markup=pango
 interval=60
 ```
