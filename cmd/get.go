@@ -15,7 +15,7 @@ var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get Jeedom global summary",
 	Run: func(cmd *cobra.Command, args []string) {
-		result := make(map[string]string)
+		var result map[string]string
 
 		// Check args
 		selectedStyle, _ := cmd.Flags().GetString("style")
@@ -45,9 +45,17 @@ var getCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringP("url", "u", "", "Jeedom API URL (required)")
-	getCmd.MarkFlagRequired("url")
+	err := getCmd.MarkFlagRequired("url")
+	if err != nil {
+		println(err)
+		os.Exit(1)
+	}
 	getCmd.Flags().StringP("apiKey", "k", "", "Jeedom API key or User Hash Key (required)")
-	getCmd.MarkFlagRequired("apiKey")
+	err = getCmd.MarkFlagRequired("apiKey")
+	if err != nil {
+		println(err)
+		os.Exit(1)
+	}
 
 	getCmd.Flags().StringP("style", "s", "fonts",
 		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
