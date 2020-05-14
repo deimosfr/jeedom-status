@@ -58,7 +58,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	getCmd.Flags().StringP("style", "s", "fonts",
+	getCmd.Flags().StringP("style", "s", "text",
 		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
 
 	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
@@ -66,7 +66,7 @@ func init() {
 }
 
 func getStyles() []string {
-	return []string{"fonts", "emoji"}
+	return []string{"text", "jeedom", "nerd", "emoji"}
 }
 
 func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
@@ -125,18 +125,18 @@ func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
 
 func getSampleJeedomGlobalStatus() map[string]string {
 	return map[string]string{
-		"alarm": "1", // ok
-		"door": "0",
-		"humidity": "1", // ok
-		"light": "1", // ok
-		"luminosity": "4", // ok
-		"motion": "0",
-		"outlet": "2", // ok
-		"power": "2", // ok
-		"security": "0",
-		"shutter": "0",
-		"temperature": "1", // ok
-		"windows": "3", // ok
+		"alarm": "1",
+		"door": pkg.RandomNumberAsString(),
+		"humidity": pkg.RandomNumberAsString(),
+		"light": pkg.RandomNumberAsString(),
+		"luminosity": pkg.RandomNumberAsString(),
+		"motion": pkg.RandomNumberAsString(),
+		"outlet": pkg.RandomNumberAsString(),
+		"power": pkg.RandomNumberAsString(),
+		"security": pkg.RandomNumberAsString(),
+		"shutter": pkg.RandomNumberAsString(),
+		"temperature": pkg.RandomNumberAsString(),
+		"windows": pkg.RandomNumberAsString(),
 	}
 }
 
@@ -148,10 +148,13 @@ func prettyPrint(jeedomMap map[string]string, iconStyle string, debugMode bool) 
 		fmt.Println(jeedomMap)
 	}
 
-	if iconStyle == "fonts" {
-		icons = pkg.JeedomSummaryFontsIcons()
+	icons = pkg.JeedomSummaryNoIcons()
+	if iconStyle == "nerd" {
+		icons = pkg.JeedomSummaryNerdFontsIcons()
 	} else if iconStyle == "emoji" {
 		icons = pkg.JeedomSummaryEmojiIcons()
+	} else if iconStyle == "jeedom" {
+		icons = pkg.JeedomSummaryFontsIcons()
 	}
 
 	for key, value := range jeedomMap {
