@@ -47,7 +47,7 @@ func JeedomSummaryEmojiIcons() JeedomSummary {
 		Security:    "\U0001F6A8",
 		Shutter:     "\u2195",
 		Temperature: "\U0001F321",
-		Windows:     "\U0001FA9F",
+		Windows:     "\U0001F5BC",
 	}
 }
 
