@@ -5,6 +5,10 @@ brew_path=/usr/local/bin
 if [ ! -f $brew_path/brew ] ; then
     echo "--> Installing brew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    if [ ! -f $brew_path/brew ] ; then
+        echo "Brew is has not been installed, please retry"
+        exit 1
+    fi
 fi
 
 if [ ! -d /Applications/BitBar.app ] ; then
