@@ -87,3 +87,13 @@ bar {
         }
 }
 ``` 
+
+# FAQ
+
+## How to upgrade jeedom-status?
+
+On Mac, you can use:
+```bash
+brew upgrade jeedom-status
+```
+For Linux, download the latest version and replace the binary.

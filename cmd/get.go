@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -19,18 +20,17 @@ var getCmd = &cobra.Command{
 
 		// Check args
 		selectedStyle, _ := cmd.Flags().GetString("style")
-		_, found := pkg.Find(getStyles(), selectedStyle)
-		if !found {
-			fmt.Printf(
-				"Value %s is not a valid style, allowed values are: %s\n",
-				selectedStyle,
-				strings.Join(getStyles(), " "),
-			)
+		if !pkg.CheckArgContent(selectedStyle, getStyles()) {
+			os.Exit(1)
+		}
+
+		selectedBarType, _ := cmd.Flags().GetString("barType")
+		if !pkg.CheckArgContent(selectedBarType, getBarsTypes()) {
 			os.Exit(1)
 		}
 
 		if res, _ := cmd.Flags().GetBool("fake"); res {
-			result = getSampleJeedomGlobalStatus()
+			result = pkg.GetSampleJeedomGlobalStatus()
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
 			url, _ := cmd.Flags().GetString("url")
@@ -39,7 +39,8 @@ var getCmd = &cobra.Command{
 		}
 
 		debugMode, _ := cmd.Flags().GetBool("debug")
-		prettyPrint(result, selectedStyle, debugMode)
+
+		prettyPrint(result, selectedStyle, selectedBarType, debugMode)
 	},
 }
 
@@ -58,8 +59,11 @@ func init() {
 		os.Exit(1)
 	}
 
+	getCmd.Flags().StringP("barType", "b", "autodetect",
+		fmt.Sprintf("Select the bar type: %s", strings.Join(getStyles(), ", ")))
+
 	getCmd.Flags().StringP("style", "s", "text",
-		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
+		fmt.Sprintf("Choose output style: %s", strings.Join(getBarsTypes(), ", ")))
 
 	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
 	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
@@ -67,6 +71,10 @@ func init() {
 
 func getStyles() []string {
 	return []string{"text", "jeedom", "nerd", "emoji"}
+}
+
+func getBarsTypes() []string {
+	return []string{"autodetect", "mac", "i3blocks", "none"}
 }
 
 func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
@@ -123,24 +131,7 @@ func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
 	return stringMap
 }
 
-func getSampleJeedomGlobalStatus() map[string]string {
-	return map[string]string{
-		"alarm": "1",
-		"door": pkg.RandomNumberAsString(),
-		"humidity": pkg.RandomNumberAsString(),
-		"light": pkg.RandomNumberAsString(),
-		"luminosity": pkg.RandomNumberAsString(),
-		"motion": pkg.RandomNumberAsString(),
-		"outlet": pkg.RandomNumberAsString(),
-		"power": pkg.RandomNumberAsString(),
-		"security": pkg.RandomNumberAsString(),
-		"shutter": pkg.RandomNumberAsString(),
-		"temperature": pkg.RandomNumberAsString(),
-		"windows": pkg.RandomNumberAsString(),
-	}
-}
-
-func prettyPrint(jeedomMap map[string]string, iconStyle string, debugMode bool) {
+func prettyPrint(jeedomMap map[string]string, iconStyle string, barType string, debugMode bool) {
 	var toPrint []string
 	var icons pkg.JeedomSummary
 
@@ -191,7 +182,38 @@ func prettyPrint(jeedomMap map[string]string, iconStyle string, debugMode bool) 
 	}
 
 	lineToPrint := strings.Join(toPrint, " ")
+	fmt.Println(formatBarType(barType, lineToPrint))
+}
 
-	fmt.Println(lineToPrint)
-	fmt.Println(lineToPrint)
+func formatBarType(barType string, lineToPrint string) string {
+	if barType == "mac" {
+		return printMacBar(lineToPrint)
+	}
+
+	if barType == "i3blocks" {
+		return lineToPrint + "\n" + lineToPrint
+	}
+
+	if barType == "autodetect" {
+		if runtime.GOOS == "Darwin" {
+			return printMacBar(lineToPrint)
+		}
+	}
+	return lineToPrint
+}
+
+func printMacBar(lineToPrint string) string {
+	result := lineToPrint
+
+	newVersion, version := pkg.CheckAvailableNewVersion()
+	if version == "" {
+		return "Can't check latest version"
+	}
+
+	if newVersion {
+		messageVersion := fmt.Sprintf("New version available v%s ", version)
+		result = result + "\n" + messageVersion
+	}
+
+	return result
 }
