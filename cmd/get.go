@@ -20,12 +20,8 @@ var getCmd = &cobra.Command{
 
 		// Check args
 		selectedStyle, _ := cmd.Flags().GetString("style")
-		if !pkg.CheckArgContent(selectedStyle, getStyles()) {
-			os.Exit(1)
-		}
-
 		selectedBarType, _ := cmd.Flags().GetString("barType")
-		if !pkg.CheckArgContent(selectedBarType, getBarsTypes()) {
+		if !pkg.CheckArgContent(selectedStyle, getStyles()) || !pkg.CheckArgContent(selectedBarType, getBarsTypes()) {
 			os.Exit(1)
 		}
 
@@ -40,7 +36,8 @@ var getCmd = &cobra.Command{
 
 		debugMode, _ := cmd.Flags().GetBool("debug")
 
-		prettyPrint(result, selectedStyle, selectedBarType, debugMode)
+		printedLine := mainPrint(result, selectedStyle, selectedBarType, debugMode)
+		additionalPrint(printedLine, selectedStyle, selectedBarType)
 	},
 }
 
@@ -60,10 +57,10 @@ func init() {
 	}
 
 	getCmd.Flags().StringP("barType", "b", "autodetect",
-		fmt.Sprintf("Select the bar type: %s", strings.Join(getStyles(), ", ")))
+		fmt.Sprintf("Select the bar type: %s", strings.Join(getBarsTypes(), ", ")))
 
 	getCmd.Flags().StringP("style", "s", "text",
-		fmt.Sprintf("Choose output style: %s", strings.Join(getBarsTypes(), ", ")))
+		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
 
 	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
 	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
@@ -131,7 +128,7 @@ func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
 	return stringMap
 }
 
-func prettyPrint(jeedomMap map[string]string, iconStyle string, barType string, debugMode bool) {
+func mainPrint(jeedomMap map[string]string, iconStyle string, barType string, debugMode bool) string {
 	var toPrint []string
 	var icons pkg.JeedomSummary
 
@@ -155,65 +152,70 @@ func prettyPrint(jeedomMap map[string]string, iconStyle string, barType string, 
 		} else if value == "<nil>" || value == "0" {
 			continue
 		} else if key == "security" {
-			toPrint = append(toPrint, value + icons.Security)
+			toPrint = append(toPrint, value+icons.Security)
 		} else if key == "motion" {
-			toPrint = append(toPrint, value + icons.Motion)
+			toPrint = append(toPrint, value+icons.Motion)
 		} else if key == "windows" {
-			toPrint = append(toPrint, value + icons.Windows)
+			toPrint = append(toPrint, value+icons.Windows)
 		} else if key == "outlet" {
-			toPrint = append(toPrint, value + icons.Outlet)
+			toPrint = append(toPrint, value+icons.Outlet)
 		} else if key == "humidity" {
-			toPrint = append(toPrint, value + icons.Humidity)
+			toPrint = append(toPrint, value+icons.Humidity)
 		} else if key == "light" {
-			toPrint = append(toPrint, value + icons.Light)
+			toPrint = append(toPrint, value+icons.Light)
 		} else if key == "luminosity" {
-			toPrint = append(toPrint, value + icons.Luminosity)
+			toPrint = append(toPrint, value+icons.Luminosity)
 		} else if key == "power" {
-			toPrint = append(toPrint, value + icons.Power)
+			toPrint = append(toPrint, value+icons.Power)
 		} else if key == "door" {
-			toPrint = append(toPrint, value + icons.Door)
+			toPrint = append(toPrint, value+icons.Door)
 		} else if key == "temperature" {
-			toPrint = append(toPrint, value + icons.Temperature)
+			toPrint = append(toPrint, value+icons.Temperature)
 		} else if key == "shutter" {
-			toPrint = append(toPrint, value + icons.Shutter)
+			toPrint = append(toPrint, value+icons.Shutter)
 		} else {
-			toPrint = append(toPrint, value + key)
+			toPrint = append(toPrint, value+key)
 		}
 	}
 
 	lineToPrint := strings.Join(toPrint, " ")
-	fmt.Println(formatBarType(barType, lineToPrint))
-}
 
-func formatBarType(barType string, lineToPrint string) string {
-	if barType == "mac" {
-		return printMacBar(lineToPrint)
-	}
-
-	if barType == "i3blocks" {
-		return lineToPrint + "\n" + lineToPrint
-	}
-
-	if barType == "autodetect" {
-		if runtime.GOOS == "Darwin" {
-			return printMacBar(lineToPrint)
-		}
-	}
+	fmt.Println(lineToPrint)
 	return lineToPrint
 }
 
-func printMacBar(lineToPrint string) string {
-	result := lineToPrint
+func additionalPrint(printedLine string, iconStyle string, barType string) {
+	lineToPrint := formatAdditionalInfo(printedLine, barType)
+	if lineToPrint != "" {
+		fmt.Println(lineToPrint)
+	}
+}
 
-	newVersion, version := pkg.CheckAvailableNewVersion()
-	if version == "" {
-		return "Can't check latest version"
+func formatAdditionalInfo(printedLine string, barType string) string {
+	if barType == "mac" {
+		return printMacBar()
 	}
 
-	if newVersion {
-		messageVersion := fmt.Sprintf("New version available v%s ", version)
-		result = result + "\n" + messageVersion
+	if barType == "i3blocks" {
+		return printedLine
 	}
 
-	return result
+	if barType == "autodetect" {
+		if runtime.GOOS == "darwin" {
+			return printMacBar()
+		}
+	}
+	return ""
+}
+
+func printMacBar() string {
+	additionalInfo := "---"
+
+	newAvailableVersion, version := pkg.GetLatestVersion()
+	if newAvailableVersion {
+		additionalInfo += fmt.Sprintf("\nNew available version %s | bash=/usr/local/bin/brew param1=upgrade param2=jeedom-status terminal=false refresh=true", version)
+	} else {
+		additionalInfo += fmt.Sprintf("\nCurrent version %s", version)
+	}
+	return additionalInfo
 }
