@@ -1,43 +1,73 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/deimosfr/jeedom-status/pkg"
 	"github.com/spf13/cobra"
-	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 )
+
+type JeedomCurrentStatus struct {
+	JeedomUrl			string
+	JeedomApiKey		string
+	JeedomGlobalStatus	map[string]string
+	JeedomUpdates		int
+	JeedomMessages		int
+	BarsType			string
+	Style				string
+	DebugMode			bool
+}
 
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get Jeedom global summary",
 	Run: func(cmd *cobra.Command, args []string) {
-		var result map[string]string
+		var currentGlobalStatus JeedomCurrentStatus
 
 		// Check args
 		selectedStyle, _ := cmd.Flags().GetString("style")
 		selectedBarType, _ := cmd.Flags().GetString("barType")
+		debugMode, _ := cmd.Flags().GetBool("debug")
 		if !pkg.CheckArgContent(selectedStyle, getStyles()) || !pkg.CheckArgContent(selectedBarType, getBarsTypes()) {
 			os.Exit(1)
 		}
 
 		if res, _ := cmd.Flags().GetBool("fake"); res {
-			result = pkg.GetSampleJeedomGlobalStatus()
+			currentGlobalStatus = JeedomCurrentStatus{
+				JeedomUrl:          "",
+				JeedomApiKey:       "",
+				JeedomGlobalStatus: pkg.GetSampleJeedomGlobalStatus(),
+				JeedomUpdates:      1,
+				JeedomMessages:     2,
+				BarsType:           selectedBarType,
+				Style:              selectedStyle,
+				DebugMode:          debugMode,
+			}
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
 			url, _ := cmd.Flags().GetString("url")
 			url = url + "/core/api/jeeApi.php"
-			result = getJeedomGlobalStatus(apiKey, url)
+			currentGlobalStatus = JeedomCurrentStatus{
+				JeedomUrl:          url,
+				JeedomApiKey:       apiKey,
+				JeedomGlobalStatus: getJeedomGlobalStatus(apiKey, url, debugMode),
+				JeedomUpdates:      getJeedomUpdates(apiKey, url, debugMode),
+				JeedomMessages:     getJeedomMessage(apiKey, url, debugMode),
+				BarsType:           selectedBarType,
+				Style:              selectedStyle,
+				DebugMode:          debugMode,
+			}
 		}
 
-		debugMode, _ := cmd.Flags().GetBool("debug")
+		// Build lines
+		mainLine := mainPrint(&currentGlobalStatus)
+		additionalLines := additionalPrint(&currentGlobalStatus, mainLine)
 
-		printedLine := mainPrint(result, selectedStyle, selectedBarType, debugMode)
-		additionalPrint(printedLine, selectedStyle, selectedBarType)
+		fmt.Println(mainLine)
+		fmt.Println(additionalLines)
 	},
 }
 
@@ -74,41 +104,9 @@ func getBarsTypes() []string {
 	return []string{"autodetect", "mac", "i3blocks", "none"}
 }
 
-func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
+func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string]string {
 	stringMap := make(map[string]string)
-	payload := map[string]interface{}{
-		"jsonrpc": "2.0",
-		"id":      "1",
-		"method":  "summary::global",
-		"params": map[string]string{
-			"apikey": apiKey,
-			"id":     "1",
-		},
-	}
-
-	bytesRepresentation, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	if resp.StatusCode != 200 {
-		fmt.Printf("Error while trying to reach url %s: %s", url, resp.Status)
-		os.Exit(1)
-	}
-
-	var result map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	result := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
 
 	for key, value := range result {
 		if key == "error" {
@@ -128,24 +126,71 @@ func getJeedomGlobalStatus(apiKey string, url string) map[string]string {
 	return stringMap
 }
 
-func mainPrint(jeedomMap map[string]string, iconStyle string, barType string, debugMode bool) string {
+func getJeedomUpdates(apiKey string, url string, debugMode bool) int {
+	totalUpdates := 0
+	result := pkg.GetApiResult(apiKey, url, "update::all", debugMode)
+
+	for key, value := range result {
+		if key == "error" {
+			for message, content := range value.(map[string]interface{}) {
+				if message == "message" {
+					fmt.Printf("Error: %s", content)
+					os.Exit(1)
+				}
+			}
+		} else if key == "result" {
+			pluginList := reflect.ValueOf(value)
+			for i := 0; i < pluginList.Len(); i++ {
+				for name, content := range pluginList.Index(i).Interface().(map[string]interface{}) {
+					if name == "status" && content != "ok" {
+						totalUpdates++
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return totalUpdates
+}
+
+func getJeedomMessage(apiKey string, url string, debugMode bool) int {
+	result := pkg.GetApiResult(apiKey, url, "message::all", debugMode)
+
+	for key, value := range result {
+		if key == "error" {
+			for message, content := range value.(map[string]interface{}) {
+				if message == "message" {
+					fmt.Printf("Error: %s", content)
+					os.Exit(1)
+				}
+			}
+		} else if key == "result" {
+			return reflect.ValueOf(value).Len()
+		}
+	}
+
+	return 0
+}
+
+func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	var toPrint []string
 	var icons pkg.JeedomSummary
 
-	if debugMode {
-		fmt.Println(jeedomMap)
+	if jeedomCurrentInfos.DebugMode {
+		fmt.Println(jeedomCurrentInfos.JeedomGlobalStatus)
 	}
 
 	icons = pkg.JeedomSummaryNoIcons()
-	if iconStyle == "nerd" {
+	if jeedomCurrentInfos.Style == "nerd" {
 		icons = pkg.JeedomSummaryNerdFontsIcons()
-	} else if iconStyle == "emoji" {
+	} else if jeedomCurrentInfos.Style == "emoji" {
 		icons = pkg.JeedomSummaryEmojiIcons()
-	} else if iconStyle == "jeedom" {
+	} else if jeedomCurrentInfos.Style == "jeedom" {
 		icons = pkg.JeedomSummaryFontsIcons()
 	}
 
-	for key, value := range jeedomMap {
+	for key, value := range jeedomCurrentInfos.JeedomGlobalStatus {
 		if key == "alarm" && value != "0" {
 			toPrint = append(toPrint, icons.Alarm)
 			continue
@@ -178,44 +223,58 @@ func mainPrint(jeedomMap map[string]string, iconStyle string, barType string, de
 		}
 	}
 
-	lineToPrint := strings.Join(toPrint, " ")
+	// Print Jeedom if there is nothing else to print
+	if toPrint == nil {
+		if jeedomCurrentInfos.DebugMode {
+			fmt.Println("Nothing to print, Global status is empty")
+		}
+		return "Jeedom"
+	}
 
-	fmt.Println(lineToPrint)
-	return lineToPrint
+	lineGlobalStatus := strings.Join(toPrint, " ")
+
+	return lineGlobalStatus
 }
 
-func additionalPrint(printedLine string, iconStyle string, barType string) {
-	lineToPrint := formatAdditionalInfo(printedLine, barType)
-	if lineToPrint != "" {
-		fmt.Println(lineToPrint)
-	}
-}
-
-func formatAdditionalInfo(printedLine string, barType string) string {
-	if barType == "mac" {
-		return printMacBar()
+func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) string {
+	if jeedomCurrentInfos.BarsType == "mac" {
+		return printMacBar(jeedomCurrentInfos)
 	}
 
-	if barType == "i3blocks" {
-		return printedLine
+	if jeedomCurrentInfos.BarsType == "i3blocks" {
+		return mainLine
 	}
 
-	if barType == "autodetect" {
+	if jeedomCurrentInfos.BarsType == "autodetect" {
 		if runtime.GOOS == "darwin" {
-			return printMacBar()
+			return printMacBar(jeedomCurrentInfos)
 		}
 	}
 	return ""
 }
 
-func printMacBar() string {
-	additionalInfo := "---"
+func printMacBar(jeedomCurrentInfos *JeedomCurrentStatus) string {
+	additionalInfo := "---\n"
 
+	// Updates
+	if jeedomCurrentInfos.JeedomUpdates > 0 {
+		additionalInfo += fmt.Sprintf("Updates %d | color=red href=%s/index.php?v=d&p=update\n",
+			jeedomCurrentInfos.JeedomUpdates,
+			jeedomCurrentInfos.JeedomUrl)
+	}
+	// Messages
+	if jeedomCurrentInfos.JeedomMessages > 0 {
+		additionalInfo += fmt.Sprintf("Messages %d | color=yellow href=%s\n",
+			jeedomCurrentInfos.JeedomMessages,
+			jeedomCurrentInfos.JeedomUrl)
+	}
+
+	//Version / upgrade needed
 	newAvailableVersion, version := pkg.GetLatestVersion()
 	if newAvailableVersion {
-		additionalInfo += fmt.Sprintf("\nNew available version %s | bash=/usr/local/bin/brew param1=upgrade param2=jeedom-status terminal=false refresh=true", version)
+		additionalInfo += fmt.Sprintf("New available version %s | bash=/usr/local/bin/brew param1=upgrade param2=jeedom-status terminal=false refresh=true\n", version)
 	} else {
-		additionalInfo += fmt.Sprintf("\nCurrent version %s", version)
+		additionalInfo += fmt.Sprintf("Current version %s\n", version)
 	}
 	return additionalInfo
 }

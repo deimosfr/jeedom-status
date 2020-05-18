@@ -87,9 +87,8 @@ func StoreLastVersion(lastCheckVersionFile string, version string) bool {
 		}
 		return false
 	}
-
-	err = f.Close()
-	if err != nil {
+	
+	if f.Close() != nil {
 		return false
 	}
 	return true

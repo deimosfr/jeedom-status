@@ -1,18 +1,19 @@
 package pkg
 
 type JeedomSummary struct {
-	Alarm string
-	Door string
-	Humidity string
-	Light string
-	Luminosity string
-	Motion string
-	Outlet string
-	Power string
-	Security string
-	Shutter string
+	Alarm       string
+	Door        string
+	Humidity    string
+	Light       string
+	Luminosity  string
+	Motion      string
+	Outlet      string
+	Power       string
+	Security    string
+	Shutter     string
 	Temperature string
-	Windows string
+	Updates     string
+	Windows     string
 }
 
 func JeedomSummaryNerdFontsIcons() JeedomSummary {
@@ -29,6 +30,7 @@ func JeedomSummaryNerdFontsIcons() JeedomSummary {
 		Security:    "\uFC8D", // nok
 		Shutter:     "S",
 		Temperature: "\uF2C7",
+		Updates:     "\uF62E",
 		Windows:     "\uF17A",
 	}
 }
@@ -47,6 +49,7 @@ func JeedomSummaryEmojiIcons() JeedomSummary {
 		Security:    "\U0001F6A8",
 		Shutter:     "\u2195",
 		Temperature: "\U0001F321",
+		Updates:     "\U0001F534",
 		Windows:     "\U0001F5BC",
 	}
 }
@@ -65,6 +68,7 @@ func JeedomSummaryFontsIcons() JeedomSummary {
 		Security:    "\uE601", //Jeedom font
 		Shutter:     "\uE627", //Jeedom font
 		Temperature: "\uE622", //Jeedom font
+		Updates:     "\uE91D", // Jeedomapp font
 		Windows:     "\uE60A", //Jeedom font
 	}
 }
@@ -81,7 +85,8 @@ func JeedomSummaryNoIcons() JeedomSummary {
 		Power:       "P",
 		Security:    "S",
 		Shutter:     "U",
-		Temperature: "T",
+		Temperature: "R",
+		Updates:     "U",
 		Windows:     "W",
 	}
 }
