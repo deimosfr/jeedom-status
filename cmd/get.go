@@ -11,14 +11,15 @@ import (
 )
 
 type JeedomCurrentStatus struct {
-	JeedomUrl			string
-	JeedomApiKey		string
-	JeedomGlobalStatus	map[string]string
-	JeedomUpdates		int
-	JeedomMessages		int
-	BarsType			string
-	Style				string
-	DebugMode			bool
+	JeedomApiUrl       string
+	JeedomUrl	       string
+	JeedomApiKey       string
+	JeedomGlobalStatus map[string]string
+	JeedomUpdates      int
+	JeedomMessages     int
+	BarsType           string
+	Style              string
+	DebugMode          bool
 }
 
 var getCmd = &cobra.Command{
@@ -37,7 +38,8 @@ var getCmd = &cobra.Command{
 
 		if res, _ := cmd.Flags().GetBool("fake"); res {
 			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomUrl:          "",
+				JeedomApiUrl:       "",
+				JeedomUrl:			"",
 				JeedomApiKey:       "",
 				JeedomGlobalStatus: pkg.GetSampleJeedomGlobalStatus(),
 				JeedomUpdates:      1,
@@ -49,13 +51,14 @@ var getCmd = &cobra.Command{
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
 			url, _ := cmd.Flags().GetString("url")
-			url = url + "/core/api/jeeApi.php"
+			urlApi := url + "/core/api/jeeApi.php"
 			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomUrl:          url,
+				JeedomApiUrl:       urlApi,
+				JeedomUrl: 			url,
 				JeedomApiKey:       apiKey,
-				JeedomGlobalStatus: getJeedomGlobalStatus(apiKey, url, debugMode),
-				JeedomUpdates:      getJeedomUpdates(apiKey, url, debugMode),
-				JeedomMessages:     getJeedomMessage(apiKey, url, debugMode),
+				JeedomGlobalStatus: getJeedomGlobalStatus(apiKey, urlApi, debugMode),
+				JeedomUpdates:      getJeedomUpdates(apiKey, urlApi, debugMode),
+				JeedomMessages:     getJeedomMessage(apiKey, urlApi, debugMode),
 				BarsType:           selectedBarType,
 				Style:              selectedStyle,
 				DebugMode:          debugMode,
