@@ -267,7 +267,7 @@ func printMacBar(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	}
 	// Messages
 	if jeedomCurrentInfos.JeedomMessages > 0 {
-		additionalInfo += fmt.Sprintf("Messages %d | color=yellow href=%s\n",
+		additionalInfo += fmt.Sprintf("Messages %d | color=orange href=%s\n",
 			jeedomCurrentInfos.JeedomMessages,
 			jeedomCurrentInfos.JeedomUrl)
 	}
