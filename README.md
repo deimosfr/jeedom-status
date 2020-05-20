@@ -59,6 +59,11 @@ You're done, click on the Bitbar and "refresh all". You'll see your Jeedom globa
 
 ![i3_desktop](assets/i3_desktop2.png)
 
+On Linux, you can download directly the [binary](https://github.com/deimosfr/jeedom-status/releases). On Arch Linux, you can install via the AUR package:
+```bash
+yay jeedom-status
+```
+
 Here is an example with [i3blocks](https://github.com/vivien/i3blocks) for [i3wm](https://i3wm.org/). Add this in your i3blocks.conf:
 
 ```ini
