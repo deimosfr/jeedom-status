@@ -4,7 +4,7 @@ Jeedom is a third party tool for [Jeedom](https://jeedom.com/) (Home assistant).
 
 It shows the Jeedom global status in the status bars in the global status bar of the operating systems.
 
-You can download the binary directly from the [release page](https://github.com/deimosfr/jeedom-status/releases). It's available for Mac, Windows and Linux.
+You can download the binary directly from the [release page](https://github.com/deimosfr/jeedom-status/releases). It's available for Mac and Linux. Windows binary works but not yet integrated.
 
 # Prerequisites
 
