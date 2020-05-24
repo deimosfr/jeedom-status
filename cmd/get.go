@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -177,8 +178,10 @@ func getJeedomMessage(apiKey string, url string, debugMode bool) int {
 }
 
 func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
-	var toPrint []string
+	var lineToPrint string
 	var icons pkg.JeedomSummary
+	var iconsToPrint []string
+	currentJeedomStatus := make(map[string]string)
 
 	if jeedomCurrentInfos.DebugMode {
 		fmt.Println(jeedomCurrentInfos.JeedomGlobalStatus)
@@ -195,48 +198,69 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 
 	for key, value := range jeedomCurrentInfos.JeedomGlobalStatus {
 		if key == "alarm" && value != "0" {
-			toPrint = append(toPrint, icons.Alarm)
+			currentJeedomStatus[icons.Alarm]=""
+			iconsToPrint = append(iconsToPrint, icons.Alarm)
 			continue
 		} else if value == "<nil>" || value == "0" {
 			continue
 		} else if key == "security" {
-			toPrint = append(toPrint, value+icons.Security)
+			currentJeedomStatus[icons.Security] = value
+			iconsToPrint = append(iconsToPrint, icons.Security)
 		} else if key == "motion" {
-			toPrint = append(toPrint, value+icons.Motion)
+			currentJeedomStatus[icons.Motion] = value
+			iconsToPrint = append(iconsToPrint, icons.Motion)
 		} else if key == "windows" {
-			toPrint = append(toPrint, value+icons.Windows)
+			currentJeedomStatus[icons.Windows] = value
+			iconsToPrint = append(iconsToPrint, icons.Windows)
 		} else if key == "outlet" {
-			toPrint = append(toPrint, value+icons.Outlet)
+			currentJeedomStatus[icons.Outlet] = value
+			iconsToPrint = append(iconsToPrint, icons.Outlet)
 		} else if key == "humidity" {
-			toPrint = append(toPrint, value+icons.Humidity)
+			currentJeedomStatus[icons.Humidity] = value
+			iconsToPrint = append(iconsToPrint, icons.Humidity)
 		} else if key == "light" {
-			toPrint = append(toPrint, value+icons.Light)
+			currentJeedomStatus[icons.Light] = value
+			iconsToPrint = append(iconsToPrint, icons.Light)
 		} else if key == "luminosity" {
-			toPrint = append(toPrint, value+icons.Luminosity)
+			currentJeedomStatus[icons.Luminosity] = value
+			iconsToPrint = append(iconsToPrint, icons.Luminosity)
 		} else if key == "power" {
-			toPrint = append(toPrint, value+icons.Power)
+			currentJeedomStatus[icons.Power] = value
+			iconsToPrint = append(iconsToPrint, icons.Power)
 		} else if key == "door" {
-			toPrint = append(toPrint, value+icons.Door)
+			currentJeedomStatus[icons.Door] = value
+			iconsToPrint = append(iconsToPrint, icons.Door)
 		} else if key == "temperature" {
-			toPrint = append(toPrint, value+icons.Temperature)
+			currentJeedomStatus[icons.Temperature] = value
+			iconsToPrint = append(iconsToPrint, icons.Temperature)
 		} else if key == "shutter" {
-			toPrint = append(toPrint, value+icons.Shutter)
+			currentJeedomStatus[icons.Shutter] = value
+			iconsToPrint = append(iconsToPrint, icons.Shutter)
 		} else {
-			toPrint = append(toPrint, value+key)
+			currentJeedomStatus[key] = value
+			iconsToPrint = append(iconsToPrint, key)
 		}
 	}
 
 	// Print Jeedom if there is nothing else to print
-	if toPrint == nil {
+	if iconsToPrint == nil {
 		if jeedomCurrentInfos.DebugMode {
 			fmt.Println("Nothing to print, Global status is empty")
 		}
 		return "Jeedom"
 	}
 
-	lineGlobalStatus := strings.Join(toPrint, " ")
+	sort.Strings(iconsToPrint)
+	for icon, value := range currentJeedomStatus {
+		for selectedIcon := range iconsToPrint {
+			if iconsToPrint[selectedIcon] == icon {
+				lineToPrint += value + icon + " "
+				continue
+			}
+		}
+	}
 
-	return lineGlobalStatus
+	return strings.Trim(lineToPrint, " ")
 }
 
 func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) string {
