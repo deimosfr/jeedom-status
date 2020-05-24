@@ -251,9 +251,9 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	}
 
 	sort.Strings(iconsToPrint)
-	for icon, value := range currentJeedomStatus {
-		for selectedIcon := range iconsToPrint {
-			if iconsToPrint[selectedIcon] == icon {
+	for currentIcon := range iconsToPrint {
+		for icon, value := range currentJeedomStatus {
+			if iconsToPrint[currentIcon] == icon {
 				lineToPrint += value + icon + " "
 				continue
 			}
