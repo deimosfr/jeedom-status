@@ -13,7 +13,7 @@ import (
 
 type JeedomCurrentStatus struct {
 	JeedomApiUrl       string
-	JeedomUrl	       string
+	JeedomUrl          string
 	JeedomApiKey       string
 	JeedomGlobalStatus map[string]string
 	JeedomUpdates      int
@@ -40,7 +40,7 @@ var getCmd = &cobra.Command{
 		if res, _ := cmd.Flags().GetBool("fake"); res {
 			currentGlobalStatus = JeedomCurrentStatus{
 				JeedomApiUrl:       "",
-				JeedomUrl:			"",
+				JeedomUrl:          "",
 				JeedomApiKey:       "",
 				JeedomGlobalStatus: pkg.GetSampleJeedomGlobalStatus(),
 				JeedomUpdates:      1,
@@ -55,7 +55,7 @@ var getCmd = &cobra.Command{
 			urlApi := url + "/core/api/jeeApi.php"
 			currentGlobalStatus = JeedomCurrentStatus{
 				JeedomApiUrl:       urlApi,
-				JeedomUrl: 			url,
+				JeedomUrl:          url,
 				JeedomApiKey:       apiKey,
 				JeedomGlobalStatus: getJeedomGlobalStatus(apiKey, urlApi, debugMode),
 				JeedomUpdates:      getJeedomUpdates(apiKey, urlApi, debugMode),
@@ -96,8 +96,8 @@ func init() {
 	getCmd.Flags().StringP("style", "s", "text",
 		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
 
-	getCmd.Flags().BoolP("fake", "f", false,"Run a sample test (won't connect to Jeedom API)")
-	getCmd.Flags().BoolP("debug", "d", false,"Run in debug mode")
+	getCmd.Flags().BoolP("fake", "f", false, "Run a sample test (won't connect to Jeedom API)")
+	getCmd.Flags().BoolP("debug", "d", false, "Run in debug mode")
 }
 
 func getStyles() []string {
@@ -198,7 +198,7 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 
 	for key, value := range jeedomCurrentInfos.JeedomGlobalStatus {
 		if key == "alarm" && value != "0" {
-			currentJeedomStatus[icons.Alarm]=""
+			currentJeedomStatus[icons.Alarm] = ""
 			iconsToPrint = append(iconsToPrint, icons.Alarm)
 			continue
 		} else if value == "<nil>" || value == "0" {
@@ -260,7 +260,65 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 		}
 	}
 
+	// Add notifications
+	lineToPrint += notificationsPint(jeedomCurrentInfos)
+
 	return strings.Trim(lineToPrint, " ")
+}
+
+func notificationsPint(jeedomCurrentInfos *JeedomCurrentStatus) string {
+	var result []string
+	updateAndMessageCounts := [2]int{jeedomCurrentInfos.JeedomUpdates, jeedomCurrentInfos.JeedomMessages}
+	icons := map[int]string{
+		1:  "\u2460",
+		2:  "\u2461",
+		3:  "\u2462",
+		4:  "\u2463",
+		5:  "\u2464",
+		6:  "\u2465",
+		7:  "\u2466",
+		8:  "\u2467",
+		9:  "\u2468",
+		10: "\u2469",
+		11: "\u246A",
+		12: "\u246B",
+		13: "\u246C",
+		14: "\u246D",
+		15: "\u246E",
+		16: "\u246F",
+		17: "\u2470",
+		18: "\u2471",
+		19: "\u2472",
+		20: "\u2473",
+	}
+
+	for kind, number := range updateAndMessageCounts {
+		if number > 0 {
+			content := ""
+			if jeedomCurrentInfos.BarsType == "i3blocks" {
+				color := "red"
+				if kind == 1 {
+					color = "orange"
+				}
+				content = "<span color='" + color + "'><span font='FontAwesome'>"
+			}
+
+			// convert to icon
+			if number > 20 {
+				content += "+"
+			}
+			if number <= 20 {
+				content += icons[number]
+			}
+
+			if jeedomCurrentInfos.BarsType == "i3blocks" {
+				content += "</span></span>"
+			}
+			result = append(result, content)
+		}
+	}
+
+	return strings.Join(result, " ")
 }
 
 func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) string {
