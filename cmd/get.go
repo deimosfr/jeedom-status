@@ -3,11 +3,13 @@ package cmd
 import (
 	"fmt"
 	"github.com/deimosfr/jeedom-status/pkg"
+	. "github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"os"
 	"reflect"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -268,6 +270,7 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 
 func notificationsPint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	var result []string
+	var coloredContent int
 	updateAndMessageCounts := [2]int{jeedomCurrentInfos.JeedomUpdates, jeedomCurrentInfos.JeedomMessages}
 	icons := map[int]string{
 		1:  "\u2460",
@@ -308,7 +311,16 @@ func notificationsPint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 				content += "+"
 			}
 			if number <= 20 {
-				content += icons[number]
+				if jeedomCurrentInfos.BarsType == "mac" {
+					if kind == 1 {
+						coloredContent, _ = fmt.Printf("%s", Yellow(icons[number]))
+					} else {
+						coloredContent, _ =fmt.Printf("%s", Red(icons[number]))
+					}
+					content += strconv.Itoa(coloredContent)
+				} else {
+					content += icons[number]
+				}
 			}
 
 			if jeedomCurrentInfos.BarsType == "i3blocks" {
