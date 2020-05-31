@@ -262,15 +262,41 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	}
 
 	// Add notifications
-	lineToPrint += notificationsPint(jeedomCurrentInfos)
+	lineToPrint += notificationsPrint(jeedomCurrentInfos)
 
 	return strings.Trim(lineToPrint, " ")
 }
 
-func notificationsPint(jeedomCurrentInfos *JeedomCurrentStatus) string {
+func notificationsPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	var result []string
-	var coloredContent int
+	color := ""
 	updateAndMessageCounts := [2]int{jeedomCurrentInfos.JeedomUpdates, jeedomCurrentInfos.JeedomMessages}
+
+	for kind, number := range updateAndMessageCounts {
+		if number > 0 {
+			content := ""
+
+			color = "red"
+			if kind == 1 {
+				color = "orange"
+			}
+
+			if number > 20 {
+				content += "+"
+			}
+			if number <= 20 {
+				content += notificationColorize(jeedomCurrentInfos.BarsType, color, number)
+			}
+			result = append(result, content)
+		}
+	}
+
+	return strings.Join(result, " ")
+}
+
+func notificationColorize(barType string, color string, number int) string {
+	content := ""
+	var coloredContent int
 	icons := map[int]string{
 		1:  "\u2460",
 		2:  "\u2461",
@@ -294,42 +320,26 @@ func notificationsPint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 		20: "\u2473",
 	}
 
-	for kind, number := range updateAndMessageCounts {
-		if number > 0 {
-			content := ""
-			if jeedomCurrentInfos.BarsType == "i3blocks" {
-				color := "red"
-				if kind == 1 {
-					color = "orange"
-				}
-				content = "<span color='" + color + "'><span font='FontAwesome'>"
-			}
-
-			// convert to icon
-			if number > 20 {
-				content += "+"
-			}
-			if number <= 20 {
-				if jeedomCurrentInfos.BarsType == "mac" {
-					if kind == 1 {
-						coloredContent, _ = fmt.Printf("%s", Yellow(icons[number]))
-					} else {
-						coloredContent, _ =fmt.Printf("%s", Red(icons[number]))
-					}
-					content += strconv.Itoa(coloredContent)
-				} else {
-					content += icons[number]
-				}
-			}
-
-			if jeedomCurrentInfos.BarsType == "i3blocks" {
-				content += "</span></span>"
-			}
-			result = append(result, content)
-		}
+	if barType == "i3blocks" {
+		content = "<span color='" + color + "'><span font='FontAwesome'>"
 	}
 
-	return strings.Join(result, " ")
+	if barType == "mac" {
+		if color == "yellow" {
+			coloredContent, _ = fmt.Printf("%s", Yellow(icons[number]))
+		} else {
+			coloredContent, _ =fmt.Printf("%s", Red(icons[number]))
+		}
+		content += strconv.Itoa(coloredContent)
+	} else {
+		content += icons[number]
+	}
+
+	if barType == "i3blocks" {
+		content += "</span></span>"
+	}
+
+	return content
 }
 
 func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) string {
