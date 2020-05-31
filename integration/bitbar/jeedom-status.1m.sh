@@ -16,4 +16,4 @@
 APIKEY=
 JEEDOM_URL=
 STYLE="emoji"
-/usr/local/bin/jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE
+/usr/local/bin/jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE -b mac

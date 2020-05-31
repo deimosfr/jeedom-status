@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"reflect"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -92,7 +91,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	getCmd.Flags().StringP("barType", "b", "autodetect",
+	getCmd.Flags().StringP("barType", "b", "mac",
 		fmt.Sprintf("Select the bar type: %s", strings.Join(getBarsTypes(), ", ")))
 
 	getCmd.Flags().StringP("style", "s", "text",
@@ -107,7 +106,7 @@ func getStyles() []string {
 }
 
 func getBarsTypes() []string {
-	return []string{"autodetect", "mac", "i3blocks", "none"}
+	return []string{"mac", "i3blocks", "none"}
 }
 
 func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string]string {
@@ -342,11 +341,6 @@ func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) s
 		return mainLine
 	}
 
-	if jeedomCurrentInfos.BarsType == "autodetect" {
-		if runtime.GOOS == "darwin" {
-			return printMacBar(jeedomCurrentInfos)
-		}
-	}
 	return ""
 }
 
