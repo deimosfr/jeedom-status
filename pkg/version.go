@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"errors"
-	"gopkg.in/djherbis/times.v1"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -54,18 +53,14 @@ func GetLatestVersion() (bool, string) {
 		return newAvailableVersion, lastVersion
 	}
 
-	// only check once a day to speedup rendering
-	versionFileInfo, _ := times.Stat(lastCheckVersionFile)
-	fileTimestamp := versionFileInfo.ModTime().Unix()
-	currentTimestamp := time.Now().Unix()
-
-	// If the file is too old and require an update
-	if fileTimestamp < currentTimestamp - int64(86400) {
+	// only check once every hour to speedup rendering
+	_, minutes, _ := time.Now().Clock()
+	if minutes == 0 {
 		newAvailableVersion, lastVersion := CheckAvailableNewVersion()
 		return newAvailableVersion, lastVersion
 	}
 
-	// If the file exists, return saved content
+	// Return saved content
 	storedVersion := ReadLastCheckedVersion(lastCheckVersionFile)
 	if GetCurrentVersion() != storedVersion {
 		return true, storedVersion
