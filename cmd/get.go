@@ -67,6 +67,8 @@ var getCmd = &cobra.Command{
 			}
 		}
 
+		pkg.GetJeedomNetworkConfig(currentGlobalStatus.JeedomApiKey, currentGlobalStatus.JeedomApiUrl, debugMode)
+
 		// Build lines
 		mainLine := mainPrint(&currentGlobalStatus)
 		additionalLines := additionalPrint(&currentGlobalStatus, mainLine)
