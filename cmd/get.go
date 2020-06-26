@@ -13,16 +13,19 @@ import (
 )
 
 type JeedomCurrentStatus struct {
-	JeedomApiUrl       string
-	JeedomUrl          string
-	JeedomApiKey       string
-	JeedomGlobalStatus map[string]string
-	JeedomUpdates      int
-	JeedomMessages     int
-	BarsType           string
-	Style              string
-	DebugMode          bool
+	JeedomApiUrl         string
+	JeedomUrl            string
+	JeedomAlternativeUrl string
+	JeedomApiKey         string
+	JeedomGlobalStatus   map[string]string
+	JeedomUpdates        int
+	JeedomMessages       int
+	BarsType             string
+	Style                string
+	DebugMode            bool
 }
+
+const jeedomApiUrlSuffix = "/core/api/jeeApi.php"
 
 var getCmd = &cobra.Command{
 	Use:   "get",
@@ -40,30 +43,38 @@ var getCmd = &cobra.Command{
 
 		if res, _ := cmd.Flags().GetBool("fake"); res {
 			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomApiUrl:       "",
-				JeedomUrl:          "",
-				JeedomApiKey:       "",
-				JeedomGlobalStatus: pkg.GetSampleJeedomGlobalStatus(),
-				JeedomUpdates:      1,
-				JeedomMessages:     2,
-				BarsType:           selectedBarType,
-				Style:              selectedStyle,
-				DebugMode:          debugMode,
+				JeedomApiUrl:         "",
+				JeedomUrl:            "",
+				JeedomAlternativeUrl: "",
+				JeedomApiKey:         "",
+				JeedomGlobalStatus:   pkg.GetSampleJeedomGlobalStatus(),
+				JeedomUpdates:        1,
+				JeedomMessages:       2,
+				BarsType:             selectedBarType,
+				Style:                selectedStyle,
+				DebugMode:            debugMode,
 			}
 		} else {
 			apiKey, _ := cmd.Flags().GetString("apiKey")
 			url, _ := cmd.Flags().GetString("url")
-			urlApi := url + "/core/api/jeeApi.php"
+			alternateUrl, _ := cmd.Flags().GetString("alternateUrl")
+			urlApi := pkg.CheckConnectivity(apiKey, url, alternateUrl, jeedomApiUrlSuffix, debugMode)
+			if urlApi == "" {
+				fmt.Println("Jeedom N/A")
+				os.Exit(1)
+			}
+
 			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomApiUrl:       urlApi,
-				JeedomUrl:          url,
-				JeedomApiKey:       apiKey,
-				JeedomGlobalStatus: getJeedomGlobalStatus(apiKey, urlApi, debugMode),
-				JeedomUpdates:      getJeedomUpdates(apiKey, urlApi, debugMode),
-				JeedomMessages:     getJeedomMessage(apiKey, urlApi, debugMode),
-				BarsType:           selectedBarType,
-				Style:              selectedStyle,
-				DebugMode:          debugMode,
+				JeedomApiUrl:         urlApi,
+				JeedomUrl:            url,
+				JeedomAlternativeUrl: alternateUrl,
+				JeedomApiKey:         apiKey,
+				JeedomGlobalStatus:   getJeedomGlobalStatus(apiKey, urlApi, debugMode),
+				JeedomUpdates:        getJeedomUpdates(apiKey, urlApi, debugMode),
+				JeedomMessages:       getJeedomMessage(apiKey, urlApi, debugMode),
+				BarsType:             selectedBarType,
+				Style:                selectedStyle,
+				DebugMode:            debugMode,
 			}
 		}
 
@@ -84,6 +95,7 @@ func init() {
 		println(err)
 		os.Exit(1)
 	}
+	getCmd.Flags().StringP("alternateUrl", "a", "", "Jeedom lternate API URL, like http://jeedom")
 	getCmd.Flags().StringP("apiKey", "k", "", "Jeedom API key or User Hash Key (required)")
 	err = getCmd.MarkFlagRequired("apiKey")
 	if err != nil {
@@ -111,7 +123,7 @@ func getBarsTypes() []string {
 
 func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string]string {
 	stringMap := make(map[string]string)
-	result := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
+	result, _ := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
 
 	for key, value := range result {
 		if key == "error" {
@@ -133,7 +145,7 @@ func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string
 
 func getJeedomUpdates(apiKey string, url string, debugMode bool) int {
 	totalUpdates := 0
-	result := pkg.GetApiResult(apiKey, url, "update::all", debugMode)
+	result, _ := pkg.GetApiResult(apiKey, url, "update::all", debugMode)
 
 	for key, value := range result {
 		if key == "error" {
@@ -160,7 +172,7 @@ func getJeedomUpdates(apiKey string, url string, debugMode bool) int {
 }
 
 func getJeedomMessage(apiKey string, url string, debugMode bool) int {
-	result := pkg.GetApiResult(apiKey, url, "message::all", debugMode)
+	result, _ := pkg.GetApiResult(apiKey, url, "message::all", debugMode)
 
 	for key, value := range result {
 		if key == "error" {
@@ -328,7 +340,7 @@ func notificationColorize(barType string, color string, number int) string {
 		if color == "yellow" {
 			coloredContent, _ = fmt.Printf("%s", Yellow(icons[number]))
 		} else {
-			coloredContent, _ =fmt.Printf("%s", Red(icons[number]))
+			coloredContent, _ = fmt.Printf("%s", Red(icons[number]))
 		}
 		content += strconv.Itoa(coloredContent)
 	} else {

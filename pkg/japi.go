@@ -5,10 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 )
 
-func GetApiResult(apiKey string, url string, method string, debugMode bool) map[string]interface{} {
+func CheckConnectivity(apiKey string, url string, alternateUrl string, jeedomApiUrlSuffix string, debugMode bool) string {
+	urlFull := url + jeedomApiUrlSuffix
+	_, err := GetApiResult(apiKey, urlFull, "ping", debugMode)
+	if err == nil {
+		return urlFull
+	}
+
+	urlFull = alternateUrl + jeedomApiUrlSuffix
+	_, err = GetApiResult(apiKey, urlFull, "ping", debugMode)
+	if err == nil {
+		return urlFull
+	}
+
+	return ""
+}
+
+func GetApiResult(apiKey string, url string, method string, debugMode bool) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"jsonrpc": "2.0",
 		"id":      "1",
@@ -21,30 +36,26 @@ func GetApiResult(apiKey string, url string, method string, debugMode bool) map[
 
 	bytesRepresentation, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		if debugMode {
-			fmt.Println(err.Error())
-		}
-		fmt.Println("Jeedom")
-		os.Exit(1)
+	resp, errPost := http.Post(url, "application/json", bytes.NewBuffer(bytesRepresentation))
+	if debugMode {
+		fmt.Println(err.Error())
+	}
+	if errPost != nil {
+		return nil, errPost
 	}
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("Error while trying to reach url %s: %s", url, resp.Status)
-		os.Exit(1)
+		return nil, fmt.Errorf("Error while trying to reach url %s: %s", url, resp.Status)
 	}
 
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
