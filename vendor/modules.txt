@@ -1,3 +1,6 @@
+# github.com/hashicorp/go-version v1.2.1
+## explicit
+github.com/hashicorp/go-version
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
@@ -14,4 +17,3 @@ github.com/spf13/pflag
 ## explicit
 # gopkg.in/djherbis/times.v1 v1.2.0
 ## explicit
-gopkg.in/djherbis/times.v1

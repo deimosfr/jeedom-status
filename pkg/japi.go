@@ -3,6 +3,7 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -21,6 +22,21 @@ func CheckConnectivity(apiKey string, url string, alternateUrl string, jeedomApi
 	}
 
 	return ""
+}
+
+func GetVersion(apiKey string, url string, debugMode bool) (string, error) {
+	resp, err := GetApiResult(apiKey, url, "version", debugMode)
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range resp {
+		if key == "result" {
+			jeedomVersion := fmt.Sprintf("%v", value)
+			return jeedomVersion, nil
+		}
+	}
+	return "", errors.New("Wasn't able to get Jeedom version from the API")
 }
 
 func GetApiResult(apiKey string, url string, method string, debugMode bool) (map[string]interface{}, error) {

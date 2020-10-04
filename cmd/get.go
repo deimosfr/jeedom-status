@@ -5,6 +5,7 @@ import (
 	"github.com/deimosfr/jeedom-status/pkg"
 	. "github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"github.com/hashicorp/go-version"
 	"os"
 	"reflect"
 	"sort"
@@ -16,6 +17,7 @@ type JeedomCurrentStatus struct {
 	JeedomApiUrl         string
 	JeedomUrl            string
 	JeedomAlternativeUrl string
+	JeedomVersion		 string
 	JeedomApiKey         string
 	JeedomGlobalStatus   map[string]string
 	JeedomUpdates        int
@@ -47,6 +49,7 @@ var getCmd = &cobra.Command{
 				JeedomUrl:            "",
 				JeedomAlternativeUrl: "",
 				JeedomApiKey:         "",
+				JeedomVersion: 		  "4.0",
 				JeedomGlobalStatus:   pkg.GetSampleJeedomGlobalStatus(),
 				JeedomUpdates:        1,
 				JeedomMessages:       2,
@@ -63,13 +66,19 @@ var getCmd = &cobra.Command{
 				fmt.Println("Jeedom N/A")
 				os.Exit(1)
 			}
+			jeedomVersion, err := pkg.GetVersion(apiKey, urlApi, debugMode)
+			if err != nil {
+				fmt.Println("Can't determine Jeedom version")
+				os.Exit(1)
+			}
 
 			currentGlobalStatus = JeedomCurrentStatus{
 				JeedomApiUrl:         urlApi,
 				JeedomUrl:            url,
 				JeedomAlternativeUrl: alternateUrl,
 				JeedomApiKey:         apiKey,
-				JeedomGlobalStatus:   getJeedomGlobalStatus(apiKey, urlApi, debugMode),
+				JeedomVersion:		  jeedomVersion,
+				JeedomGlobalStatus:   getJeedomGlobalStatus(apiKey, urlApi, jeedomVersion, debugMode),
 				JeedomUpdates:        getJeedomUpdates(apiKey, urlApi, debugMode),
 				JeedomMessages:       getJeedomMessage(apiKey, urlApi, debugMode),
 				BarsType:             selectedBarType,
@@ -102,6 +111,7 @@ func init() {
 		println(err)
 		os.Exit(1)
 	}
+	getCmd.Flags().Float32P("jeedomVersion", "v", 4.0, "Specify the version of Jeedom")
 
 	getCmd.Flags().StringP("barType", "b", "mac",
 		fmt.Sprintf("Select the bar type: %s", strings.Join(getBarsTypes(), ", ")))
@@ -121,7 +131,17 @@ func getBarsTypes() []string {
 	return []string{"mac", "i3blocks", "none"}
 }
 
-func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string]string {
+func getJeedomGlobalStatus(apiKey string, url string, jeedomVersion string, debugMode bool) map[string]string {
+	jeedomVersion41, _ := version.NewVersion("4.1")
+	jeedomVersionSemVer, _ := version.NewVersion(jeedomVersion)
+
+	if jeedomVersionSemVer.LessThan(jeedomVersion41) {
+		return getJeedomGlobalStatus40(apiKey, url, debugMode)
+	}
+	return getJeedomGlobalStatus41(apiKey, url, debugMode)
+}
+
+func getJeedomGlobalStatus40(apiKey string, url string, debugMode bool) map[string]string {
 	stringMap := make(map[string]string)
 	result, _ := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
 
@@ -136,6 +156,29 @@ func getJeedomGlobalStatus(apiKey string, url string, debugMode bool) map[string
 		} else if key == "result" {
 			for name, number := range result["result"].(map[string]interface{}) {
 				stringMap[name] = fmt.Sprintf("%v", number)
+			}
+		}
+	}
+
+	return stringMap
+}
+
+func getJeedomGlobalStatus41(apiKey string, url string, debugMode bool) map[string]string {
+	stringMap := make(map[string]string)
+	result, _ := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
+
+	for key, value := range result {
+		if key == "error" {
+			for message, content := range value.(map[string]interface{}) {
+				if message == "message" {
+					fmt.Printf("Error: %s", content)
+					os.Exit(1)
+				}
+			}
+		} else if key == "result" {
+			for name, content := range result["result"].(map[string]interface{}) {
+				resultMap := content.(map[string]interface{})
+				stringMap[name] = fmt.Sprintf("%v", resultMap["value"])
 			}
 		}
 	}

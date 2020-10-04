@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"github.com/hashicorp/go-version"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -10,7 +11,7 @@ import (
 )
 
 func GetCurrentVersion() string {
-	return "0.8.1" // ci-version-check
+	return "0.9.0" // ci-version-check
 }
 
 func GetLatestOnlineVersionUrl() (string, error) {
@@ -36,7 +37,11 @@ func CheckAvailableNewVersion() (bool, string) {
 	if err != nil {
 		return false, ""
 	}
-	if GetCurrentVersion() < latestOnlineVersion {
+
+	latestOnlineVersionSemVer, _ := version.NewVersion(latestOnlineVersion)
+	currentVersion, _ := version.NewVersion(GetCurrentVersion())
+
+	if currentVersion.LessThan(latestOnlineVersionSemVer){
 		return true, latestOnlineVersion
 	}
 	return false, latestOnlineVersion
