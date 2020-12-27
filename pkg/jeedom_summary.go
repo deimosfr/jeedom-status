@@ -2,6 +2,7 @@ package pkg
 
 type JeedomSummary struct {
 	Alarm       string
+	Battery     string
 	Door        string
 	Humidity    string
 	Light       string
@@ -20,6 +21,7 @@ func JeedomSummaryNerdFontsIcons() JeedomSummary {
 	// icons: https://www.nerdfonts.com/cheat-sheet
 	return JeedomSummary{
 		Alarm:       "\uF023",
+		Battery:     "\uF244",
 		Door:        "\uFD18", // nok
 		Humidity:    "\uE373",
 		Light:       "\uF834",
@@ -39,6 +41,7 @@ func JeedomSummaryEmojiIcons() JeedomSummary {
 	// emoji: https://unicode.org/emoji/charts/full-emoji-list.html
 	return JeedomSummary{
 		Alarm:       "\U0001F512",
+		Battery:     "\U0001F50B",
 		Door:        "\U0001F6AA",
 		Humidity:    "\U0001F4A7",
 		Light:       "\U0001F4A1",
@@ -58,6 +61,7 @@ func JeedomSummaryFontsIcons() JeedomSummary {
 	// Load fonts with http://mathew-kurian.github.io/CharacterMap/
 	return JeedomSummary{
 		Alarm:       "\uE60E", //Jeedom font
+		Battery: 	 "\uE602", //Jeedom font
 		Door:        "\uE61D", //Jeedom font
 		Humidity:    "\uE90F", //Jeedomapp font
 		Light:       "\uE611", //Jeedom font
@@ -76,6 +80,7 @@ func JeedomSummaryFontsIcons() JeedomSummary {
 func JeedomSummaryNoIcons() JeedomSummary {
 	return JeedomSummary{
 		Alarm:       "A",
+		Battery: 	 "B",
 		Door:        "D",
 		Humidity:    "H",
 		Light:       "G",

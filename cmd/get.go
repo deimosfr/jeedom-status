@@ -5,27 +5,11 @@ import (
 	"github.com/deimosfr/jeedom-status/pkg"
 	. "github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
-	"github.com/hashicorp/go-version"
 	"os"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 )
-
-type JeedomCurrentStatus struct {
-	JeedomApiUrl         string
-	JeedomUrl            string
-	JeedomAlternativeUrl string
-	JeedomVersion		 string
-	JeedomApiKey         string
-	JeedomGlobalStatus   map[string]string
-	JeedomUpdates        int
-	JeedomMessages       int
-	BarsType             string
-	Style                string
-	DebugMode            bool
-}
 
 const jeedomApiUrlSuffix = "/core/api/jeeApi.php"
 
@@ -33,62 +17,35 @@ var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get Jeedom global summary",
 	Run: func(cmd *cobra.Command, args []string) {
-		var currentGlobalStatus JeedomCurrentStatus
-
 		// Check args
 		selectedStyle, _ := cmd.Flags().GetString("style")
 		selectedBarType, _ := cmd.Flags().GetString("barType")
 		debugMode, _ := cmd.Flags().GetBool("debug")
+		apiKey, _ := cmd.Flags().GetString("apiKey")
+		url, _ := cmd.Flags().GetString("url")
+		alternateUrl, _ := cmd.Flags().GetString("alternateUrl")
+		ignoreBatteryWarning, _ := cmd.Flags().GetBool("ignore-battery-warning")
 		if !pkg.CheckArgContent(selectedStyle, getStyles()) || !pkg.CheckArgContent(selectedBarType, getBarsTypes()) {
 			os.Exit(1)
 		}
 
-		if res, _ := cmd.Flags().GetBool("fake"); res {
-			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomApiUrl:         "",
-				JeedomUrl:            "",
-				JeedomAlternativeUrl: "",
-				JeedomApiKey:         "",
-				JeedomVersion: 		  "4.0",
-				JeedomGlobalStatus:   pkg.GetSampleJeedomGlobalStatus(),
-				JeedomUpdates:        1,
-				JeedomMessages:       2,
-				BarsType:             selectedBarType,
-				Style:                selectedStyle,
-				DebugMode:            debugMode,
-			}
-		} else {
-			apiKey, _ := cmd.Flags().GetString("apiKey")
-			url, _ := cmd.Flags().GetString("url")
-			alternateUrl, _ := cmd.Flags().GetString("alternateUrl")
-			urlApi := pkg.CheckConnectivity(apiKey, url, alternateUrl, jeedomApiUrlSuffix, debugMode)
-			if urlApi == "" {
-				fmt.Println("Jeedom N/A")
-				os.Exit(1)
-			}
-			jeedomVersion, err := pkg.GetVersion(apiKey, urlApi, debugMode)
-			if err != nil {
-				fmt.Println("Can't determine Jeedom version")
-				os.Exit(1)
-			}
-
-			currentGlobalStatus = JeedomCurrentStatus{
-				JeedomApiUrl:         urlApi,
-				JeedomUrl:            url,
-				JeedomAlternativeUrl: alternateUrl,
-				JeedomApiKey:         apiKey,
-				JeedomVersion:		  jeedomVersion,
-				JeedomGlobalStatus:   getJeedomGlobalStatus(apiKey, urlApi, jeedomVersion, debugMode),
-				JeedomUpdates:        getJeedomUpdates(apiKey, urlApi, debugMode),
-				JeedomMessages:       getJeedomMessage(apiKey, urlApi, debugMode),
-				BarsType:             selectedBarType,
-				Style:                selectedStyle,
-				DebugMode:            debugMode,
-			}
+		// select reachable URL
+		urlApi := pkg.CheckConnectivity(apiKey, url, alternateUrl, jeedomApiUrlSuffix, debugMode)
+		if urlApi == "" {
+			fmt.Println("Jeedom N/A")
+			os.Exit(1)
+		}
+		jeedomVersion, err := pkg.GetVersion(apiKey, urlApi, debugMode)
+		if err != nil {
+			fmt.Println("Can't determine Jeedom version")
+			os.Exit(1)
 		}
 
+		currentGlobalStatus := pkg.BuildGlobalStatus(apiKey, urlApi, jeedomVersion, selectedStyle, selectedBarType, debugMode)
+		batteryStatus := pkg.GetJeedomBatteryInfo(apiKey, urlApi, ignoreBatteryWarning, debugMode)
+
 		// Build lines
-		mainLine := mainPrint(&currentGlobalStatus)
+		mainLine := mainPrint(&currentGlobalStatus, &batteryStatus)
 		additionalLines := additionalPrint(&currentGlobalStatus, mainLine)
 
 		fmt.Println(mainLine)
@@ -104,7 +61,7 @@ func init() {
 		println(err)
 		os.Exit(1)
 	}
-	getCmd.Flags().StringP("alternateUrl", "a", "", "Jeedom lternate API URL, like http://jeedom")
+	getCmd.Flags().StringP("alternateUrl", "a", "", "Jeedom alternate API URL, like http://jeedom")
 	getCmd.Flags().StringP("apiKey", "k", "", "Jeedom API key or User Hash Key (required)")
 	err = getCmd.MarkFlagRequired("apiKey")
 	if err != nil {
@@ -119,7 +76,7 @@ func init() {
 	getCmd.Flags().StringP("style", "s", "text",
 		fmt.Sprintf("Choose output style: %s", strings.Join(getStyles(), ", ")))
 
-	getCmd.Flags().BoolP("fake", "f", false, "Run a sample test (won't connect to Jeedom API)")
+	getCmd.Flags().BoolP("ignore-battery-warning", "w", false, "Ignore battery waning report")
 	getCmd.Flags().BoolP("debug", "d", false, "Run in debug mode")
 }
 
@@ -131,128 +88,26 @@ func getBarsTypes() []string {
 	return []string{"mac", "i3blocks", "none"}
 }
 
-func getJeedomGlobalStatus(apiKey string, url string, jeedomVersion string, debugMode bool) map[string]string {
-	jeedomVersion41, _ := version.NewVersion("4.1")
-	jeedomVersionSemVer, _ := version.NewVersion(jeedomVersion)
-
-	if jeedomVersionSemVer.LessThan(jeedomVersion41) {
-		return getJeedomGlobalStatus40(apiKey, url, debugMode)
-	}
-	return getJeedomGlobalStatus41(apiKey, url, debugMode)
-}
-
-func getJeedomGlobalStatus40(apiKey string, url string, debugMode bool) map[string]string {
-	stringMap := make(map[string]string)
-	result, _ := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
-
-	for key, value := range result {
-		if key == "error" {
-			for message, content := range value.(map[string]interface{}) {
-				if message == "message" {
-					fmt.Printf("Error: %s", content)
-					os.Exit(1)
-				}
-			}
-		} else if key == "result" {
-			for name, number := range result["result"].(map[string]interface{}) {
-				stringMap[name] = fmt.Sprintf("%v", number)
-			}
-		}
-	}
-
-	return stringMap
-}
-
-func getJeedomGlobalStatus41(apiKey string, url string, debugMode bool) map[string]string {
-	stringMap := make(map[string]string)
-	result, _ := pkg.GetApiResult(apiKey, url, "summary::global", debugMode)
-
-	for key, value := range result {
-		if key == "error" {
-			for message, content := range value.(map[string]interface{}) {
-				if message == "message" {
-					fmt.Printf("Error: %s", content)
-					os.Exit(1)
-				}
-			}
-		} else if key == "result" {
-			for name, content := range result["result"].(map[string]interface{}) {
-				resultMap := content.(map[string]interface{})
-				stringMap[name] = fmt.Sprintf("%v", resultMap["value"])
-			}
-		}
-	}
-
-	return stringMap
-}
-
-func getJeedomUpdates(apiKey string, url string, debugMode bool) int {
-	totalUpdates := 0
-	result, _ := pkg.GetApiResult(apiKey, url, "update::all", debugMode)
-
-	for key, value := range result {
-		if key == "error" {
-			for message, content := range value.(map[string]interface{}) {
-				if message == "message" {
-					fmt.Printf("Error: %s", content)
-					os.Exit(1)
-				}
-			}
-		} else if key == "result" {
-			pluginList := reflect.ValueOf(value)
-			for i := 0; i < pluginList.Len(); i++ {
-				for name, content := range pluginList.Index(i).Interface().(map[string]interface{}) {
-					if name == "status" && content != "ok" {
-						totalUpdates++
-						break
-					}
-				}
-			}
-		}
-	}
-
-	return totalUpdates
-}
-
-func getJeedomMessage(apiKey string, url string, debugMode bool) int {
-	result, _ := pkg.GetApiResult(apiKey, url, "message::all", debugMode)
-
-	for key, value := range result {
-		if key == "error" {
-			for message, content := range value.(map[string]interface{}) {
-				if message == "message" {
-					fmt.Printf("Error: %s", content)
-					os.Exit(1)
-				}
-			}
-		} else if key == "result" {
-			return reflect.ValueOf(value).Len()
-		}
-	}
-
-	return 0
-}
-
-func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
+func mainPrint(jeedomCurrentInfo *pkg.JeedomCurrentStatus, batteryStatus *pkg.JeedomEquipmentsBatteryStatus) string {
 	var lineToPrint string
 	var icons pkg.JeedomSummary
 	var iconsToPrint []string
 	currentJeedomStatus := make(map[string]string)
 
-	if jeedomCurrentInfos.DebugMode {
-		fmt.Println(jeedomCurrentInfos.JeedomGlobalStatus)
+	if jeedomCurrentInfo.DebugMode {
+		fmt.Println(jeedomCurrentInfo.JeedomGlobalStatus)
 	}
 
 	icons = pkg.JeedomSummaryNoIcons()
-	if jeedomCurrentInfos.Style == "nerd" {
+	if jeedomCurrentInfo.Style == "nerd" {
 		icons = pkg.JeedomSummaryNerdFontsIcons()
-	} else if jeedomCurrentInfos.Style == "emoji" {
+	} else if jeedomCurrentInfo.Style == "emoji" {
 		icons = pkg.JeedomSummaryEmojiIcons()
-	} else if jeedomCurrentInfos.Style == "jeedom" {
+	} else if jeedomCurrentInfo.Style == "jeedom" {
 		icons = pkg.JeedomSummaryFontsIcons()
 	}
 
-	for key, value := range jeedomCurrentInfos.JeedomGlobalStatus {
+	for key, value := range jeedomCurrentInfo.JeedomGlobalStatus {
 		if key == "alarm" && value != "0" {
 			currentJeedomStatus[icons.Alarm] = ""
 			iconsToPrint = append(iconsToPrint, icons.Alarm)
@@ -300,7 +155,7 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 
 	// Print Jeedom if there is nothing else to print
 	if iconsToPrint == nil {
-		if jeedomCurrentInfos.DebugMode {
+		if jeedomCurrentInfo.DebugMode {
 			fmt.Println("Nothing to print, Global status is empty")
 		}
 		return "Jeedom"
@@ -317,15 +172,25 @@ func mainPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 	}
 
 	// Add notifications
-	lineToPrint += notificationsPrint(jeedomCurrentInfos)
+	lineToPrint += notificationsPrint(jeedomCurrentInfo)
+
+	// Add battery info
+	if batteryStatus.BatteryWarning > 0 {
+		batteryYellowLine := batteryColorize(jeedomCurrentInfo.BarsType, "yellow", batteryStatus.BatteryWarning, icons.Battery)
+		lineToPrint += batteryYellowLine
+	}
+	if batteryStatus.BatteryDanger > 0 {
+		batteryRedLine := batteryColorize(jeedomCurrentInfo.BarsType, "red", batteryStatus.BatteryDanger, icons.Battery)
+		lineToPrint += batteryRedLine
+	}
 
 	return strings.Trim(lineToPrint, " ")
 }
 
-func notificationsPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
+func notificationsPrint(jeedomCurrentInfo *pkg.JeedomCurrentStatus) string {
 	var result []string
 	color := ""
-	updateAndMessageCounts := [2]int{jeedomCurrentInfos.JeedomUpdates, jeedomCurrentInfos.JeedomMessages}
+	updateAndMessageCounts := [2]int{jeedomCurrentInfo.JeedomUpdates, jeedomCurrentInfo.JeedomMessages}
 
 	for kind, number := range updateAndMessageCounts {
 		if number > 0 {
@@ -340,13 +205,40 @@ func notificationsPrint(jeedomCurrentInfos *JeedomCurrentStatus) string {
 				content += "+"
 			}
 			if number <= 20 {
-				content += notificationColorize(jeedomCurrentInfos.BarsType, color, number)
+				content += notificationColorize(jeedomCurrentInfo.BarsType, color, number)
 			}
 			result = append(result, content)
 		}
 	}
 
 	return strings.Join(result, " ")
+}
+
+func batteryColorize(barType string, color string, number int, icon string) string {
+	content := ""
+	var coloredContent int
+
+	if barType == "i3blocks" {
+		content = "<span color='" + color + "'><span font='Jeedom'>"
+	}
+
+	if barType == "mac" {
+		if color == "yellow" {
+			coloredContent, _ = fmt.Printf("%s", Yellow(strconv.Itoa(number)))
+		} else {
+			coloredContent, _ = fmt.Printf("%s", Red(strconv.Itoa(number)))
+		}
+		content += strconv.Itoa(coloredContent)
+	} else {
+		content += " " + strconv.Itoa(number)
+	}
+	content += icon
+
+	if barType == "i3blocks" {
+		content += "</span></span>"
+	}
+
+	return content
 }
 
 func notificationColorize(barType string, color string, number int) string {
@@ -397,7 +289,7 @@ func notificationColorize(barType string, color string, number int) string {
 	return content
 }
 
-func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) string {
+func additionalPrint(jeedomCurrentInfos *pkg.JeedomCurrentStatus, mainLine string) string {
 	if jeedomCurrentInfos.BarsType == "mac" {
 		return printMacBar(jeedomCurrentInfos)
 	}
@@ -409,20 +301,20 @@ func additionalPrint(jeedomCurrentInfos *JeedomCurrentStatus, mainLine string) s
 	return ""
 }
 
-func printMacBar(jeedomCurrentInfos *JeedomCurrentStatus) string {
+func printMacBar(jeedomCurrentInfos *pkg.JeedomCurrentStatus) string {
 	additionalInfo := "---\n"
 
 	// Updates
 	if jeedomCurrentInfos.JeedomUpdates > 0 {
 		additionalInfo += fmt.Sprintf("Updates %d | color=red href=%s/index.php?v=d&p=update\n",
 			jeedomCurrentInfos.JeedomUpdates,
-			jeedomCurrentInfos.JeedomUrl)
+			jeedomCurrentInfos.JeedomApiUrl)
 	}
 	// Messages
 	if jeedomCurrentInfos.JeedomMessages > 0 {
 		additionalInfo += fmt.Sprintf("Messages %d | color=orange href=%s\n",
 			jeedomCurrentInfos.JeedomMessages,
-			jeedomCurrentInfos.JeedomUrl)
+			jeedomCurrentInfos.JeedomApiUrl)
 	}
 
 	//Version / upgrade needed
