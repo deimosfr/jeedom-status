@@ -7,6 +7,7 @@ builds:
       - windows
     goarch:
       - amd64
+      - arm64
 archives:
   - format_overrides:
       - goos: windows
@@ -23,7 +24,7 @@ brews:
   -
     name: jeedom-status
     goarm: 6
-    github:
+    tap:
       owner: deimosfr
       name: homebrew-jeedom-status
     url_template: "https://github.com/deimosfr/jeedom-status/releases/download/{{ .Tag }}/{{ .ArtifactName }}"

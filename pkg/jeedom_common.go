@@ -158,9 +158,7 @@ func GetJeedomGlobalStatus(apiKey string, url string, jeedomVersion string, debu
 }
 
 func BuildGlobalStatus(apiKey string, urlApi string, jeedomVersion string, selectedStyle string, selectedBarType string, debugMode bool) JeedomCurrentStatus {
-	var currentGlobalStatus JeedomCurrentStatus
-
-	currentGlobalStatus = JeedomCurrentStatus{
+	return JeedomCurrentStatus{
 		JeedomApiUrl:         urlApi,
 		JeedomApiKey:         apiKey,
 		JeedomVersion:        jeedomVersion,
@@ -171,6 +169,4 @@ func BuildGlobalStatus(apiKey string, urlApi string, jeedomVersion string, selec
 		Style:                selectedStyle,
 		DebugMode:            debugMode,
 	}
-
-	return currentGlobalStatus
 }

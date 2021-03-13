@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-brew_path=/usr/local/bin
+export PATH=/opt/homebrew/bin:$PATH
+brew_path=$(which brew)
 
-if [ ! -f $brew_path/brew ] ; then
+if [ $? -ne 0 ] ; then
     echo "--> Installing brew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-    if [ ! -f $brew_path/brew ] ; then
+    brew_path=$(which brew)
+    if [ $? -ne 0 ] ; then
         echo "Brew is has not been installed, please retry"
         exit 1
     fi
@@ -13,10 +15,11 @@ fi
 
 if [ ! -d /Applications/BitBar.app ] ; then
     echo "--> Installing bitbar"
-    brew cask install bitbar
+    brew install --cask bitbar
 fi
 
-if [ ! -f $brew_path/jeedom-status ] ; then
+which jeedom-status
+if [ $? -ne 0 ] ; then
     echo "--> Installing jeedom-status"
     brew tap deimosfr/jeedom-status
     brew install jeedom-status

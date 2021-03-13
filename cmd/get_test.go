@@ -3,31 +3,29 @@ package cmd
 import (
 	"github.com/deimosfr/jeedom-status/pkg"
 	"github.com/stretchr/testify/assert"
-	"math/rand"
-	"strconv"
 	"testing"
 )
 
-func RandomNumberAsString() string {
-	return strconv.Itoa(rand.Intn(8)+1)
-}
+//func RandomNumberAsString() string {
+//	return strconv.Itoa(rand.Intn(8)+1)
+//}
 
-func getRandomJeedomGlobalStatus() map[string]string {
-	return map[string]string{
-		"alarm": "1",
-		"door": RandomNumberAsString(),
-		"humidity": RandomNumberAsString(),
-		"light": RandomNumberAsString(),
-		"luminosity": RandomNumberAsString(),
-		"motion": RandomNumberAsString(),
-		"outlet": RandomNumberAsString(),
-		"power": RandomNumberAsString(),
-		"security": RandomNumberAsString(),
-		"shutter": RandomNumberAsString(),
-		"temperature": RandomNumberAsString(),
-		"windows": RandomNumberAsString(),
-	}
-}
+//func getRandomJeedomGlobalStatus() map[string]string {
+//	return map[string]string{
+//		"alarm": "1",
+//		"door": RandomNumberAsString(),
+//		"humidity": RandomNumberAsString(),
+//		"light": RandomNumberAsString(),
+//		"luminosity": RandomNumberAsString(),
+//		"motion": RandomNumberAsString(),
+//		"outlet": RandomNumberAsString(),
+//		"power": RandomNumberAsString(),
+//		"security": RandomNumberAsString(),
+//		"shutter": RandomNumberAsString(),
+//		"temperature": RandomNumberAsString(),
+//		"windows": RandomNumberAsString(),
+//	}
+//}
 
 func getDefinedJeedomGlobalStatus() map[string]string {
 	return map[string]string{

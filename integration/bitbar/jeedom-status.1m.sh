@@ -13,7 +13,8 @@
 # Dependencies:
 #   Jeedom-status (https://github.com/deimosfr/jeedom-status)
 
+export PATH=/opt/homebrew/bin:$PATH
 APIKEY=
 JEEDOM_URL=
 STYLE="emoji"
-/usr/local/bin/jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE -b mac
+jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE -b mac
