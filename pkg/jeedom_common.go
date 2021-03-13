@@ -122,6 +122,19 @@ func GetJeedomBatteryInfo(apiKey string, url string, ignoreBatteryWarning bool, 
 					fmt.Println(err)
 					os.Exit(1)
 				}
+				// if not danger is returned and battery is lower or equal than 5, return an alert anyway
+				batteryLevel, exists := status["battery"]
+				if !exists {
+					continue
+				}
+				currentBatteryLevel, err := strconv.Atoi(fmt.Sprintf("%v", batteryLevel))
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
+				if batteryDangerInt == 0 && currentBatteryLevel <= 5 {
+					batteryDangerInt = 1
+				}
 
 				if !ignoreBatteryWarning {
 					allBatteryNotification.BatteryWarning += batteryWarningInt
