@@ -96,5 +96,5 @@ func TestEmojiBarOutput(t *testing.T) {
 
 	currentGlobalStatus.Style = "emoji"
 	mainLine := mainPrint(&currentGlobalStatus, &allBatteryNotification)
-	assert.Equal(t, "1↕ 8⚡ 2🌡 6🏃 4💡 3💧 5🔆 7🔌 🔒 3🖼 9🚨 2🚪 12 1210🔋10🔋", mainLine)
+	assert.Equal(t, "1↕ 8⚡ 2🌡 6🏃 4💡 3💧 5🔆 7🔌 🔒 3🖼 9🚨 2🚪 ① ② 1🔋 2🔋", mainLine)
 }
