@@ -158,8 +158,9 @@ func GetJeedomGlobalStatus(apiKey string, url string, jeedomVersion string, debu
 	return GetJeedomGlobalStatus41(apiKey, url, debugMode)
 }
 
-func BuildGlobalStatus(apiKey string, urlApi string, jeedomVersion string, selectedStyle string, selectedBarType string, debugMode bool) JeedomCurrentStatus {
+func BuildGlobalStatus(reachableUrl string, apiKey string, urlApi string, jeedomVersion string, selectedStyle string, selectedBarType string, debugMode bool) JeedomCurrentStatus {
 	return JeedomCurrentStatus{
+		JeedomUrl: 			  reachableUrl,
 		JeedomApiUrl:         urlApi,
 		JeedomApiKey:         apiKey,
 		JeedomVersion:        jeedomVersion,

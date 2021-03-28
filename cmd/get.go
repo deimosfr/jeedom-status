@@ -30,7 +30,7 @@ var getCmd = &cobra.Command{
 		}
 
 		// select reachable URL
-		urlApi := pkg.CheckConnectivity(apiKey, url, alternateUrl, jeedomApiUrlSuffix, debugMode)
+		reachableUrl, urlApi := pkg.CheckConnectivity(apiKey, url, alternateUrl, jeedomApiUrlSuffix, debugMode)
 		if urlApi == "" {
 			fmt.Println("Jeedom N/A")
 			os.Exit(1)
@@ -41,7 +41,7 @@ var getCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		currentGlobalStatus := pkg.BuildGlobalStatus(apiKey, urlApi, jeedomVersion, selectedStyle, selectedBarType, debugMode)
+		currentGlobalStatus := pkg.BuildGlobalStatus(reachableUrl, apiKey, urlApi, jeedomVersion, selectedStyle, selectedBarType, debugMode)
 		batteryStatus := pkg.GetJeedomBatteryInfo(apiKey, urlApi, ignoreBatteryWarning, debugMode)
 
 		// Build lines

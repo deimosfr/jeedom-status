@@ -8,20 +8,20 @@ import (
 	"net/http"
 )
 
-func CheckConnectivity(apiKey string, url string, alternateUrl string, jeedomApiUrlSuffix string, debugMode bool) string {
+func CheckConnectivity(apiKey string, url string, alternateUrl string, jeedomApiUrlSuffix string, debugMode bool) (string, string) {
 	urlFull := url + jeedomApiUrlSuffix
 	_, err := GetApiResult(apiKey, urlFull, "ping", debugMode)
 	if err == nil {
-		return urlFull
+		return url, urlFull
 	}
 
 	urlFull = alternateUrl + jeedomApiUrlSuffix
 	_, err = GetApiResult(apiKey, urlFull, "ping", debugMode)
 	if err == nil {
-		return urlFull
+		return url, urlFull
 	}
 
-	return ""
+	return "", ""
 }
 
 func GetVersion(apiKey string, url string, debugMode bool) (string, error) {
