@@ -216,7 +216,7 @@ func notificationsPrint(jeedomCurrentInfo *pkg.JeedomCurrentStatus) string {
 
 func batteryColorize(barType string, color string, number int, icon string) string {
 	content := ""
-	var coloredContent int
+	var coloredContent string
 
 	if barType == "i3blocks" {
 		content = "<span color='" + color + "'><span font='Jeedom'>"
@@ -224,11 +224,11 @@ func batteryColorize(barType string, color string, number int, icon string) stri
 
 	if barType == "mac" {
 		if color == "yellow" {
-			coloredContent, _ = fmt.Printf("%s", Yellow(strconv.Itoa(number)))
+			coloredContent = Yellow(strconv.Itoa(number)).String()
 		} else {
-			coloredContent, _ = fmt.Printf("%s", Red(strconv.Itoa(number)))
+			coloredContent = Red(strconv.Itoa(number)).String()
 		}
-		content += strconv.Itoa(coloredContent)
+		content += coloredContent
 	} else {
 		content += " " + strconv.Itoa(number)
 	}
@@ -243,28 +243,28 @@ func batteryColorize(barType string, color string, number int, icon string) stri
 
 func notificationColorize(barType string, color string, number int) string {
 	content := ""
-	var coloredContent int
-	icons := map[int]string{
-		1:  "\u2460",
-		2:  "\u2461",
-		3:  "\u2462",
-		4:  "\u2463",
-		5:  "\u2464",
-		6:  "\u2465",
-		7:  "\u2466",
-		8:  "\u2467",
-		9:  "\u2468",
-		10: "\u2469",
-		11: "\u246A",
-		12: "\u246B",
-		13: "\u246C",
-		14: "\u246D",
-		15: "\u246E",
-		16: "\u246F",
-		17: "\u2470",
-		18: "\u2471",
-		19: "\u2472",
-		20: "\u2473",
+	var coloredContent string
+	icons := [20]string{
+		"\u2460",
+		"\u2461",
+		"\u2462",
+		"\u2463",
+		"\u2464",
+		"\u2465",
+		"\u2466",
+		"\u2467",
+		"\u2468",
+		"\u2469",
+		"\u246A",
+		"\u246B",
+		"\u246C",
+		"\u246D",
+		"\u246E",
+		"\u246F",
+		"\u2470",
+		"\u2471",
+		"\u2472",
+		"\u2473",
 	}
 
 	if barType == "i3blocks" {
@@ -273,11 +273,11 @@ func notificationColorize(barType string, color string, number int) string {
 
 	if barType == "mac" {
 		if color == "yellow" {
-			coloredContent, _ = fmt.Printf("%s", Yellow(icons[number]))
+			coloredContent = Yellow(icons[number]).String()
 		} else {
-			coloredContent, _ = fmt.Printf("%s", Red(icons[number]))
+			coloredContent = Red(icons[number]).String()
 		}
-		content += strconv.Itoa(coloredContent)
+		content += coloredContent
 	} else {
 		content += icons[number]
 	}
