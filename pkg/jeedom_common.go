@@ -9,6 +9,7 @@ import (
 )
 
 type JeedomCurrentStatus struct {
+	JeedomUrl			 string
 	JeedomApiUrl         string
 	JeedomVersion		 string
 	JeedomApiKey         string

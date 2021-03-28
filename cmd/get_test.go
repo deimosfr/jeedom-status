@@ -106,5 +106,5 @@ func TestEmojiMacBarOutput(t *testing.T) {
 	currentGlobalStatus.Style = "emoji"
 	currentGlobalStatus.BarsType = "mac"
 	mainLine := mainPrint(&currentGlobalStatus, &allBatteryNotification)
-	assert.Equal(t, "1↕ 8⚡ 2🌡 6🏃 4💡 3💧 5🔆 7🔌 🔒 3🖼 9🚨 2🚪 \x1b[31m②\x1b[0m \x1b[31m③\x1b[0m\x1b[33m1\x1b[0m🔋\x1b[31m2\x1b[0m🔋", mainLine)
+	assert.Equal(t, "1↕ 8⚡ 2🌡 6🏃 4💡 3💧 5🔆 7🔌 🔒 3🖼 9🚨 2🚪 [31m①[0m [33m②[0m[33m1[0m🔋[31m2[0m🔋", mainLine)
 }

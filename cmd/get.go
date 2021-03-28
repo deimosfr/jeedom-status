@@ -198,7 +198,7 @@ func notificationsPrint(jeedomCurrentInfo *pkg.JeedomCurrentStatus) string {
 
 			color = "red"
 			if kind == 1 {
-				color = "orange"
+				color = "yellow"
 			}
 
 			if number > 20 {
@@ -308,13 +308,13 @@ func printMacBar(jeedomCurrentInfos *pkg.JeedomCurrentStatus) string {
 	if jeedomCurrentInfos.JeedomUpdates > 0 {
 		additionalInfo += fmt.Sprintf("Updates %d | color=red href=%s/index.php?v=d&p=update\n",
 			jeedomCurrentInfos.JeedomUpdates,
-			jeedomCurrentInfos.JeedomApiUrl)
+			jeedomCurrentInfos.JeedomUrl)
 	}
 	// Messages
 	if jeedomCurrentInfos.JeedomMessages > 0 {
 		additionalInfo += fmt.Sprintf("Messages %d | color=orange href=%s\n",
 			jeedomCurrentInfos.JeedomMessages,
-			jeedomCurrentInfos.JeedomApiUrl)
+			jeedomCurrentInfos.JeedomUrl)
 	}
 
 	//Version / upgrade needed
