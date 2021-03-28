@@ -224,9 +224,9 @@ func batteryColorize(barType string, color string, number int, icon string) stri
 
 	if barType == "mac" {
 		if color == "yellow" {
-			coloredContent = fmt.Sprintf("%s", Yellow(strconv.Itoa(number)))
+			coloredContent = Yellow(strconv.Itoa(number)).String()
 		} else {
-			coloredContent = fmt.Sprintf("%s", Red(strconv.Itoa(number)))
+			coloredContent = Red(strconv.Itoa(number)).String()
 		}
 		content += coloredContent
 	} else {
@@ -273,9 +273,9 @@ func notificationColorize(barType string, color string, number int) string {
 
 	if barType == "mac" {
 		if color == "yellow" {
-			coloredContent = Yellow(icons[number]).String()
+			coloredContent = Yellow(icons[number-1]).String()
 		} else {
-			coloredContent = Red(icons[number]).String()
+			coloredContent = Red(icons[number-1]).String()
 		}
 		content += coloredContent
 	} else {
