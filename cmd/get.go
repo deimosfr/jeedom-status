@@ -279,7 +279,7 @@ func notificationColorize(barType string, color string, number int) string {
 		}
 		content += coloredContent
 	} else {
-		content += icons[number]
+		content += icons[number-1]
 	}
 
 	if barType == "i3blocks" {
