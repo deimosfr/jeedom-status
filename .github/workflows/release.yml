@@ -1,64 +1,134 @@
 
-name: goreleaser
-
 on:
-  create:
-    tags:
+  push:
+    branches: ["**"]
+    tags: ["*"]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  RUST_VERSION: 1.72.1
+  BUILD_ARGS: "--release --all-features"
+  BIN_NAME: "jeedom-status"
+  DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    name: Build - ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.os || 'ubuntu-22.04' }}
+    strategy:
+      matrix:
+        platform:
+          # Linux
+          - name: Linux x86_64
+            target: x86_64-unknown-linux-gnu
+          - name: Linux aarch64
+            target: aarch64-unknown-linux-gnu
+
+          # Mac OS
+          - name: MacOS x86_64
+            target: x86_64-apple-darwin
+          # temporary disabled due to https://github.com/briansmith/ring/issues/1442
+          # - name: MacOS aarch64
+          #   target: aarch64-apple-darwin
+
+          # Windows
+          - name: Windows x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      -
-        name: Fetch tags
-        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-      - name: Ensure tag match the current version
-        run: |
-          if [ "v$(grep '// ci-version-check' pkg/version.go | sed -r 's/.+return\s"(.+)".+/\1/')" != "$(git tag | sort --version-sort | tail -1)" ] ; then
-              echo "Tag version do not match application version"
-              exit 1
-          fi
-      -
-        name: Set up Go
-        uses: actions/setup-go@master
-        with:
-          go-version: 1.16.x
-      -
-        name: Run golangci-lint
-        uses: actions-contrib/golangci-lint@v1
-        env:
-          GOROOT: ""
-        with:
-          args: "run"
-      -
-        name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
-      - 
-        name: Prepare AUR package
-        run: |
-          version=$(awk -F'"' '/ci-version-check/{print $2}' pkg/version.go)
-          md5version=$(curl -sL https://github.com/deimosfr/jeedom-status/archive/v${version}.tar.gz --output - | md5sum | awk '{ print $1 }')
-          sed -i "s/pkgver=tbd/pkgver=$version/" PKGBUILD
-          echo "md5sums=('${md5version}')" >> PKGBUILD
-      - 
-        name: Publish AUR package
-        uses: KSXGitHub/github-actions-deploy-aur@master
-        with:
-          pkgname: jeedom-status
-          pkgbuild: ./PKGBUILD
-          commit_username: ${{ secrets.AUR_USERNAME }}
-          commit_email: ${{ secrets.AUR_EMAIL }}
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: Update AUR package
-          ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
-          force_push: 'true'
+    - name: Checkout Git repo
+      uses: actions/checkout@v3
+
+    # Linux & Windows
+    - name: Install rust toolchain
+      if: ${{ !contains(matrix.platform.target, 'apple') }}
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: "${{ env.RUST_VERSION }}"
+        override: true
+        target: ${{ matrix.platform.target }}
+        components: rustfmt, clippy
+    - name: Build ${{ matrix.platform.name }} binary
+      if: ${{ !contains(matrix.platform.target, 'apple') }}
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        use-cross: ${{ !contains(matrix.platform.target, 'x86_64') }}
+        args: ${{ env.BUILD_ARGS }} --target ${{ matrix.platform.target }}
+
+    # Mac OS
+    - name: Login to DockerHub
+      if: contains(matrix.platform.target, 'apple')
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_LOGIN }}
+        password: ${{ env.DOCKER_TOKEN }}
+    - name: Build ${{ matrix.platform.name }} binary
+      if: contains(matrix.platform.target, 'apple')
+      run: |
+        docker run --rm --volume "${PWD}":/root/src --workdir /root/src joseluisq/rust-linux-darwin-builder:$RUST_VERSION \
+        sh -c "CC=o64-clang CXX=o64-clang++ cargo build $BUILD_ARGS --target ${{ matrix.platform.target }}"
+    
+    - name: Store artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.platform.target }}-${{ env.BIN_NAME }}
+        path: target/${{ matrix.platform.target }}/release/${{ env.BIN_NAME }}${{ contains(matrix.platform.target, 'windows') && '.exe' || '' }}
+        retention-days: 1
+
+  release:
+    name: Release
+    needs: [build]
+    if: startsWith( github.ref, 'refs/tags/v' )
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Git repo
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Fetch tags
+      run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+    - name: Ensure tag match the current version
+      run: |
+        if [ "v$(grep '// ci-version-check' src/main.rs | sed -r 's/.+"(.+)".+/\1/' != "$(git tag | sort --version-sort | tail -1)" ] ; then
+            echo "Tag version do not match application version"
+            exit 1
+        fi
+
+    - uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    # Goreleaser  
+    - name: Set up Go
+      uses: actions/setup-go@v4
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v5
+      with:
+        distribution: goreleaser
+        version: latest
+        args: release --clean --skip=validate
+      env:
+        GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+
+    # Aur
+    - name: Prepare AUR package
+      run: |
+        version=$(awk -F'"' '/ci-version-check/{print $2}' pkg/version.go)
+        md5version=$(curl -sL https://github.com/deimosfr/jeedom-status/archive/v${version}.tar.gz --output - | md5sum | awk '{ print $1 }')
+        sed -i "s/pkgver=tbd/pkgver=$version/" PKGBUILD
+        echo "md5sums=('${md5version}')" >> PKGBUILD
+    - name: Publish AUR package
+      uses: KSXGitHub/github-actions-deploy-aur@master
+      with:
+        pkgname: jeedom-status
+        pkgbuild: ./PKGBUILD
+        commit_username: ${{ secrets.AUR_USERNAME }}
+        commit_email: ${{ secrets.AUR_EMAIL }}
+        ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        commit_message: Update AUR package
+        ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
+        force_push: 'true'

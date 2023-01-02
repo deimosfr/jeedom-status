@@ -55,7 +55,7 @@ Finally, the last steps are:
 
 You're done, click on the Bitbar and "refresh all". You'll see your Jeedom global status appearing.
 
-## Linux - i3 and i3blocks
+## Linux - i3 and i3blocks/i3status-rust
 
 ![i3_desktop](assets/i3_desktop2.png)
 
@@ -64,6 +64,7 @@ On Linux, you can download directly the [binary](https://github.com/deimosfr/jee
 yay jeedom-status
 ```
 
+### i3blocks
 Here is an example with [i3blocks](https://github.com/vivien/i3blocks) for [i3wm](https://i3wm.org/). Add this in your i3blocks.conf:
 
 ```ini
@@ -73,6 +74,19 @@ markup=pango
 interval=60
 ```
 
+### i3status-rust
+Here is an example of a configuration for i3status-rust:
+
+```toml
+[[block]]
+block = "custom"
+command = ''' jeedom-status -k xxx -u http://jeedom -s jeedom -b i3-status-rust --ignore-battery-warning '''
+format = "$text.pango-str()"
+hide_when_empty = true
+interval = 60
+```
+
+### fonts and i3
 If you want to use jeedom fonts, copy them into ~/.local/share/fonts/ and run:
 
 ```bash

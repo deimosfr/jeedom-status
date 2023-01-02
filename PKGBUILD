@@ -6,21 +6,16 @@ pkgdesc="Add Jeedom global status to your favorite desktop bar (i3blocks, polyba
 arch=(x86_64)
 url="https://github.com/deimosfr/jeedom-status"
 license=('GPL')
-makedepends=(git go)
+makedepends=(git cargo)
 source=("https://github.com/deimosfr/jeedom-status/archive/v$pkgver.tar.gz")
 
 build() {
 	cd "$pkgname-$pkgver"
-    export CGO_LDFLAGS="${LDFLAGS}"
-    export CGO_CFLAGS="${CFLAGS}"
-    export CGO_CPPFLAGS="${CPPFLAGS}"
-    export CGO_CXXFLAGS="${CXXFLAGS}"
-    export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
-    go build -o jeedom-status main.go
+    cargo build --release
 }
 
 package() {
 	cd "$pkgname-$pkgver"
-    install -Dm755 "$pkgname" "$pkgdir/usr/bin/$pkgname"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
 }

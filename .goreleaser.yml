@@ -1,28 +1,31 @@
 builds:
-  - main: main.go
-    binary: jeedom-status
+  - main: goreleaser.go
     goos:
-      - darwin
       - linux
+      - darwin
       - windows
     goarch:
       - amd64
       - arm64
-archives:
-  - format_overrides:
+    binary: jeedom-status
+    ignore:
       - goos: windows
-        format: zip
+        goarch: arm64
+      - goos: dawin
+        goarch: arm64
+    hooks:
+      post:
+        - ./.goreleaser_hook.sh {{ .Arch }} {{ .Os }} {{ .ProjectName }}
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
 brews:
-  -
-    name: jeedom-status
+  - name: jeedom-status
     goarm: 6
     tap:
       owner: deimosfr

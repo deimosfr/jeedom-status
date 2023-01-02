@@ -1,6 +1,12 @@
 .idea/
+.vscode/
 dist/
 jeedom_status
 jeedom_status/
 jeedom-status
 jeedom-status/
+*.json
+
+# Added by cargo
+
+/target

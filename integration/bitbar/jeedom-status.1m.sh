@@ -17,4 +17,4 @@ export PATH=/opt/homebrew/bin:$PATH
 APIKEY=
 JEEDOM_URL=
 STYLE="emoji"
-jeedom-status get --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE -b mac
+jeedom-status --apiKey $APIKEY --url $JEEDOM_URL -s $STYLE -b mac
