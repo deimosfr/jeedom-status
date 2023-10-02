@@ -1,4 +1,4 @@
-# Jeedom Status ![Master](https://github.com/deimosfr/jeedom-status/workflows/Push/badge.svg?branch=master)
+# Jeedom Status ![Master](https://github.com/deimosfr/jeedom-status/workflows/Push/badge.svg?branch=main)
 
 Jeedom is a third party tool for [Jeedom](https://jeedom.com/) (Home assistant).
 
